@@ -18,8 +18,8 @@ struct solution{
 	double score; // the objective function value for the solution.
 };
 
-struct Move{
-    Problem * problem_instance;
+struct move{
+    problem * problem_instance;
     int node_concerned;
     int new_parent;
     double new_score;
