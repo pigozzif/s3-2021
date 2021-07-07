@@ -188,33 +188,12 @@ void freeMove(struct move *v) {
   * Reporting
   */
 void printProblem(struct problem *p) {
-    printf("===PROBLEM INSTANCE===\n");
-    printf("Buildings (x, y):\n");
-    for (int i = 0; i < p->n; ++i) {
-        printf("(%f, %f)\n", p->coordinates[i].x, p->coordinates[i].y);
-    }
-    printf("\n");
-    printf("# BUILDINGS: %d\n", p->n);
-    printf("============\n");
 }
 
-void printSolution(struct solution *s) {
-    printf("===SOLUTION===\n");
-    printf("Trenches (source, target):\n");
-    for (int i = 0; i < s->problem_instance->n; ++i) {
-        printf("(%d, %d)\n", i, *(s->parents + i));
-    }
-    printf("\n");
-    printf("SCORE: %f\n", s->score);
-    printf("============\n");    
+void printSolution(struct solution *s) { 
 }
 
 void printMove(struct move* v) {
-    printf("===MOVE===\n");
-    printf("NODE CONCERNED: %d\n", v->node_concerned);
-    printf("NEW EDGE: (%d, %d)\n", v->node_concerned, v->new_parent);
-    printf("NEW SCORE: %f\n", v->new_score);
-    printf("============\n");
 }
 
 // JUST FOR DEBUGGING
