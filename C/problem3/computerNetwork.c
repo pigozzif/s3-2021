@@ -201,6 +201,30 @@ void printMove(struct move* v) {
     printf("============\n");
 }
 
+/* coppying src solution (struct) elements to dest solution (struct) elements */
+struct solution * copySolution(struct solution *dest, const struct solution *src)
+{
+    int i, n;
+    if(dest == NULL || src == NULL)
+        return NULL;
+    dest->problem_instance = src->problem_instance;
+    dest->score = src->score;
+    n = src->problem_instance->n;
+    for(i=0; i<n; i++)
+    {
+        dest->paths_length_to_center[i] = src->paths_length_to_center[i];
+        dest->lengths_to_parent[i] = src->lengths_to_parent[i];
+        dest->parents[i] = src->parents[i];
+    }
+    /* or maybe
+    memcpy(dest->paths_length_to_center, src->paths_length_to_center, n*sizeof(double));
+    memcpy(dest->lengths_to_parent, src->lengths_to_parent, n*sizeof(double));
+    memcpy(dest->parents, src->parents, n*sizeof(double));
+    */
+   return dest;
+}
+
+
 // JUST FOR DEBUGGING
 int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
