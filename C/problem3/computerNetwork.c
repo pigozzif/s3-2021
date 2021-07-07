@@ -45,11 +45,12 @@ double euclidean_distance(double x1, double x2, double y1, double y2) {
 }
 
 // TODO: distance matrix can be optimised
-// TODO: fix euclidean_distance bug
-// TODO: return NULL if allocation fails
 struct problem *newProblem(char *filename, double tc, double cc) {
     FILE* fp;
     struct problem *new_problem = malloc(sizeof(struct problem));
+    if (new_problem == NULL) {
+        return new_problem;
+    }
     char ch;
     
     // open file and return NULL if fail
@@ -71,6 +72,9 @@ struct problem *newProblem(char *filename, double tc, double cc) {
     // reopen file and fill array with buildings' coordinates
     FILE* new_fp;
     new_fp = fopen(filename, "r");
+    if (new_fp == NULL) {
+        return NULL;
+    }
     int row = 0;
     int i = 0;
     char buffer[2];
@@ -94,8 +98,14 @@ struct problem *newProblem(char *filename, double tc, double cc) {
     new_problem->trench_cost = tc;
     new_problem->cable_cost = cc;
     new_problem->distances = (double **) malloc(sizeof(double*) * n_buildings);
+    if (new_problem->distances == NULL) {
+        return NULL;
+    }
     for (int i = 0; i < n_buildings; ++i) { 
          new_problem->distances[i] = (double *) malloc(sizeof(double) * n_buildings);
+         if (new_problem->distances[i] == NULL) {
+              return NULL;
+         }
          for (int j = 0; j < n_buildings; ++j) {
               new_problem->distances[i][j] = euclidean_distance(new_problem->coordinates[i][0], new_problem->coordinates[i][1], new_problem->coordinates[j][0], new_problem->coordinates[j][1]);
          }
@@ -114,15 +124,25 @@ void freeProblem(struct problem *p) {
     free(p);
 }
 
-// TODO: return NULL if allocation fails
 struct solution *allocSolution(struct problem *p) {
     struct solution *sol = (struct solution *) malloc(sizeof(struct solution));
+    if (sol == NULL) {
+        return sol;
+    }
     sol->problem_instance = p;
     sol->paths_length_to_center = (double *) malloc(sizeof(double) * p->n);
+    if (sol->paths_length_to_center == NULL) {
+        return NULL;
+    }
     sol->lengths_to_parent = (double *) malloc(sizeof(double) * p->n);
+    if (sol->lengths_to_parent == NULL) {
+        return NULL;
+    }
     sol->parents = (int *) malloc(sizeof(int) * p->n);
+    if (sol->parents == NULL) {
+        return NULL;
+    }
     for (int i = p->n - 1; i >= 0; --i) {
-        printf("%d", i);
         sol->parents[i] = -1;
     }
     return sol;
@@ -132,9 +152,11 @@ void freeSolution(struct solution *s) {
     free(s);
 }
 
-// TODO: return NULL if allocation fails
 struct move *allocMove(struct problem *p) {
     struct move *m = (struct move *)malloc(sizeof(struct move));
+    if (m == NULL) {
+        return m;
+    }
     m->problem_instance = p;
     m->node_concerned = -1;
     m->new_parent = -1;
@@ -175,7 +197,7 @@ void printMove(struct move* v) {
     printf("===MOVE===\n");
     printf("NODE CONCERNED: %d\n", v->node_concerned);
     printf("NEW EDGE: (%d, %d)\n", v->node_concerned, v->new_parent);
-    printf("NEW SCORE: %d\n", v->new_score);
+    printf("NEW SCORE: %f\n", v->new_score);
     printf("============\n");
 }
 
