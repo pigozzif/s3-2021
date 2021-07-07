@@ -201,6 +201,7 @@ void printMove(struct move* v) {
     printf("============\n");
 }
 
+// JUST FOR DEBUGGING
 int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
     printProblem(p);
