@@ -11,7 +11,7 @@ struct problem {
 };
 
 struct solution{
-	problem *problem_instance;
+	struct problem *problem_instance;
 	double *paths_length_to_center; // total path to the center from node n
 	double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
 	int * parents; // the array of indexes of the parent for each node.
@@ -19,7 +19,7 @@ struct solution{
 };
 
 struct move{
-    problem * problem_instance;
+    struct problem * problem_instance;
     int node_concerned;
     int new_parent;
     double new_score;
