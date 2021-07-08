@@ -512,11 +512,11 @@ struct move *randomMove(struct move *v, const struct solution *s){
 
 	// 0..to nb_childerns will represent the indexes of childerns
 	// of the parent, and nb_childerns + 1 will represent the index of the parent of the parent.
-	unsigned int index_new_parent = randInt(parent_nb_childerns - 1);
+	unsigned int index_new_parent = randomInt(parent_nb_childerns - 1);
 
 
 	while(index_new_parent == edge_to_delete){
-			 index_new_parent = randInt(parent_nb_childerns - 1);
+			 index_new_parent = randomInt(parent_nb_childerns - 1);
 
 	}
 
