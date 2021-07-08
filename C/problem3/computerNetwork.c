@@ -273,11 +273,80 @@ struct solution * copySolution(struct solution *dest, const struct solution *src
 }
 
 
+
+// TO TEST
+/*
+struct solution * randomSolution(struct solution *s){
+    const int N = s->problem_instance->n; 
+    const int n = N-2;
+    int * c = malloc(n*sizeof(int));
+    int * d = calloc(N, sizeof(int));
+    for(int i=0;i<N-2;i++){
+        const int v = rand()%N;
+        c[i] = v;
+        d[v]++;
+    }
+    int i = 0;
+    while(d[i]!=0){
+        i++;
+    }
+    int leaf = i;
+    for (int j=0;j<n; j++) {
+        const int v = c[j];
+        s->parents[leaf] = v;
+        s->children[v][s->nbChildren[v]++] = leaf;
+        if(--d[v] == 0 && v<i){
+            leaf = v;
+        }
+        else {
+            i++;
+            while(d[i]!=0){
+                i++;
+            }
+            leaf = i;
+        }
+    }
+    s->parents[leaf] = N-1;
+    s->children[N-1][s->nbChildren[N-1]++] = leaf;
+    free(d);
+    free(c);
+    return s;
+}
+*/
+
+// TO TEST
+/*
+void recursiveObjectiveVector(double * trenches, double * cables, int node, struct solution * s){
+    for(int i=0;i<s->nbChildren[node];i++){
+        const int child = s->children[node][i];
+        *trenches += s->lengths_to_parent[child] = s->problem_instance->distances[child][node];
+        *cables += s->paths_length_to_center[child] = s->paths_length_to_center[node] + s->lengths_to_parent[child];
+        if(s->nbChildren[child] > 0){
+            recursiveObjectiveVector(trenches , cables, child, s);
+        }
+    }
+}
+*/
+
+// TO TEST
+/*
+double * getObjectiveVector(double *objv, struct solution * s){
+    const int root = s->problem_instance->n-1;
+    double trenches =0.0;
+    double cables = 0.0;
+    recursiveObjectiveVector(&trenches,&cables,root,s);
+    *objv = trenches*s->problem_instance->trench_cost + cables*s->problem_instance->cable_cost;
+    return objv;
+}
+*/
+
+
 // JUST FOR DEBUGGING
 int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
     printProblem(p);
     struct solution *s = allocSolution(p);
+    s = randomSolution(s);
     printSolution(s);    
     struct move* m = allocMove(p);
     printMove(m);
