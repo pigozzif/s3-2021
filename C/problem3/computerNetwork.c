@@ -269,16 +269,15 @@ void printMove(struct move* v)
         return;
     n = v->problem_instance->n;
     printf("Move - %d buildings:\n",n);
-<<<<<<< HEAD
+
 
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
 
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
 
-=======
+
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
->>>>>>> 9fbc337fb9727cf65e9ffc55648f0610b1ec404d
 }
 
 struct solution *copySolution(struct solution *dest, const struct solution *src) {
@@ -500,36 +499,53 @@ void addNeighbor(struct move *v, struct solution *s){
  * with allocMove(), which is modified in place.
  */
 struct move *randomMove(struct move *v, const struct solution *s){
+
+	unsigned int solution_length = s->problem_instance->n;
 	// edges to delete and to add.
-	unsigned int edge_to_delete, edge_to_add = 0;
-	
-	unsigned solution_length = s->problem_instance->n;
+	unsigned int edge_to_delete, edge_to_add;
+	// the degree of each node in the tree
+	unsigned int node_degree[solution_length];
 
-	edge_to_delete = randomInt(solution_length-2);
-	unsigned parent = s->parents[edge_to_delete];
+	// for each node in the solution computes its degree.
+	unsigned int sum_degrees;
+	unsigned int parent;
 
-	// get list of childerns for the parent
-	unsigned int parent_nb_childerns = s->nbChildren[parent];
-
-	// 0..to nb_childerns will represent the indexes of childerns
-	// of the parent, and nb_childerns + 1 will represent the index of the parent of the parent.
-	unsigned int index_new_parent = randomInt(parent_nb_childerns - 1);
-
-
-	while(index_new_parent == edge_to_delete){
-			 index_new_parent = randomInt(parent_nb_childerns - 1);
-
+	for (unsigned int i = 0; i < solution_length - 1 ; ++i){
+		parent = s->parents[i];
+		node_degree[i] = s->nbChildren[parent];
+		sum_degrees += node_degree[i];
 	}
 
-	if (index_new_parent == parent_nb_childerns - 1){
-		// the parent of the parent.
-		edge_to_add = s->parents[parent]; 
+	// proportionate selection of the edege to be deleted.
+	edge_to_delete = randomInt(sum_degrees-1);
+	unsigned int node_index = 0;
+	unsigned int i_sum_degree = node_degree[node_index];
+
+	while(edge_to_delete > i_sum_degree ){
+		node_index++;
+		i_sum_degree += node_degree[node_index];
+	}
 	
+	edge_to_delete = node_index;
+	
+	// new parent
+	parent = s->parents[edge_to_delete];
+	// degree of this parent
+	unsigned int parent_degree = s->nbChildren[parent];
+
+	unsigned int index_edge_to_add = randomInt(parent_degree - 1);
+	// 0 is the for representing the index of the 
+	// parent. That is the move does not change the 
+	// solution.
+	while(index_edge_to_add==0){
+		edge_to_add = randomInt(parent_degree - 1);
+	}
+	
+	// new parent is the parent of the parent.
+	if (index_edge_to_add == parent_degree - 1){
+		edge_to_add = s->parents[parent];
 	}else{
-		// pick one of the childerns randomly at uniform.
-
-		edge_to_add = s->children[parent][index_new_parent];
-
+		edge_to_add = s->children[parent][index_edge_to_add];
 	}
 
 	// update the move
