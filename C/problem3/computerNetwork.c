@@ -381,9 +381,7 @@ struct neighborhood{
 struct move* randomMoveWOR(struct move *v, struct solution *s){
     struct neighborhood * n_view = s->neighborhood;
     if(n_view->sampleSize<1){
-        v->node_concerned=-1;
-        v->new_parent=-1;
-        return v // THIS MOVE MUST NOT BE APPLIED
+        return NULL;
     }
     const int rand_res = rand()%n_view->sampleSize;
     const int idx = n_view->randomSample[rand_res];
