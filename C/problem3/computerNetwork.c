@@ -224,7 +224,19 @@ void printProblem(struct problem *p)
     }
 }
 
-void printSolution(struct solution *s) { 
+void printSolution(struct solution *s) 
+{ 
+    int i, n;
+    if(s == NULL || s->problem_instance == NULL)
+        return;
+    n = s->problem_instance->n;
+    printf("Solution - %d buildings:\n",n);
+    printf("Build\tParent\tDistance\tPath to center\n");
+    for(i=0; i<n; i++)
+    {
+        printf("B%d\t%i\t%f\t%f\n",i,s->parents[i],s->lengths_to_parent[i],s->paths_length_to_center[i]);
+    }
+    printf("Score: %f\n",s->score);
 }
 
 void printMove(struct move* v) {
