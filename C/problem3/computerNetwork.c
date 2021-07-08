@@ -350,6 +350,17 @@ double * getObjectiveVector(double *objv, struct solution * s){
     return objv;
 }
 
+void recursivelyUpdateNode(struct solution *s, int node) {
+    s->lengths_to_parent[node] = s->problem_instance->distances[node][s->parents[node]];
+    s->paths_length_to_center[node] = s->paths_length_to_center[s->parents[node]] + s->lengths_to_parent[node];    
+    for (int i = 0; i < s->nbChildren[node]; ++i) {
+        const int child = s->children[node][i];
+        if (s->nbChildren[child] > 0){
+            recursivelyUpdateNode(s, child);
+        }
+    }
+}
+
 struct solution *applyMove(struct solution *s, const struct move *v) {
     s->parents[v->source_concerned] = v->new_parent;
     s->score = v->new_score;
@@ -364,6 +375,7 @@ struct solution *applyMove(struct solution *s, const struct move *v) {
     }
     s->nbChildren[v->target_concerned] -= 1;
     s->nbChildren[v->new_parent] += 1;
+    recursivelyUpdateNode(s, v->source_concerned);
     return s; 
 }
 
@@ -555,7 +567,12 @@ struct move *copyMove(struct move *dest, const struct move *src) {
  * argument is const.
  */
 double *getObjectiveIncrement(double *obji, struct move *v, struct solution *s){
-	return obji;
+    struct solution *copy = allocSolution(s->problem_instance);
+    copy = copySolution(copy, s);
+    copy = applyMove(copy, v);
+    double *increment = getObjectiveVector(obji, copy);
+    v->new_score = *increment;
+    return increment;
 }
 
 
@@ -579,7 +596,7 @@ int main(void) {
     printSolution(s);
     struct solution *s2 = allocSolution(p);
     s2 = copySolution(s2, s);
-    printf("%d", getNeighbourhoodSize(s));
+//    printf("%d", getNeighbourhoodSize(s));
     double obj = *getObjectiveVector(&obj,s2);
     printSolution(s2);
     printf("score %lf\n",obj);
@@ -587,8 +604,8 @@ int main(void) {
     m->source_concerned = 0;
     m->target_concerned = 2;
     m->new_parent = 6;
-    s = applyMove(s, m);
-    printSolution(s);
+    s = applyMove(s2, m);
+    printSolution(s2);
     //struct move* m2 = allocMove(p);
     //m2 = copyMove(m2, m);
     //printMove(m);
