@@ -239,7 +239,14 @@ void printSolution(struct solution *s)
     printf("Score: %f\n",s->score);
 }
 
-void printMove(struct move* v) {
+void printMove(struct move* v) 
+{
+    int n;
+    if(v == NULL || v->problem_instance == NULL)
+        return;
+    n = v->problem_instance->n;
+    printf("Move - %d buildings:\n",n);
+    printf("Node: %d, new parent: %d, score: %lf\n", v->node_concerned, v->new_parent, v->new_score);
 }
 
 /* coppying src solution (struct) elements to dest solution (struct) elements */
