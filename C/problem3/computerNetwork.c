@@ -281,11 +281,8 @@ void printMove(struct move* v)
         return;
     n = v->problem_instance->n;
     printf("Move - %d buildings:\n",n);
-<<<<<<< HEAD
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
-=======
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
->>>>>>> 4521fb28fe3f03dbc39d69ba5403eacc32330353
 }
 
 struct solution *copySolution(struct solution *dest, const struct solution *src) {
