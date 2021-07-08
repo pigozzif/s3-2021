@@ -30,6 +30,8 @@ struct solution{
 	double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
 	int * parents; // the array of indexes of the parent for each node.
 	double score; // the objective function value for the solution.
+        int **children;
+        int *nbChildren;
 };
 
 struct move{
@@ -114,8 +116,10 @@ struct problem *newProblem(char *filename, double tc, double cc) {
          if (new_problem->distances[i] == NULL) {
               return NULL;
          }
+    }
+    for (int i = 0; i < n_buildings; ++i) {
          for (int j = 0; j < n_buildings; ++j) {
-              new_problem->distances[i][j] = euclidean_distance(new_problem->coordinates[i].x, new_problem->coordinates[i].y, new_problem->coordinates[j].x, new_problem->coordinates[j].y);
+              new_problem->distances[i][j] = euclidean_distance(new_problem->coordinates[i].x, new_problem->coordinates[j].x, new_problem->coordinates[i].y, new_problem->coordinates[j].y);
          }
     }
 
@@ -158,6 +162,19 @@ struct solution *allocSolution(struct problem *p) {
     for (int i = p->n - 1; i >= 0; --i) {
         sol->parents[i] = -1;
     }
+    sol->nbChildren = (int*) malloc(sol->problem_instance->n * sizeof(int));
+    for (int i = 0; i < sol->problem_instance->n; ++i) {
+        sol->nbChildren[i] = 0;
+    }
+    sol->children = (int**) malloc(sol->problem_instance->n * sizeof(int*));
+    for (int i = 0; i < sol->problem_instance->n; ++i) {
+        sol->children[i] = (int*) malloc(sol->problem_instance->n * sizeof(int));
+    }
+    for (int i = 0; i < sol->problem_instance->n; ++i) {
+        for (int j = 0; j < sol->problem_instance->n; ++j) {
+            sol->children[i][j] = -1;
+        }
+    }
     return sol;
 }
 
@@ -165,6 +182,11 @@ void freeSolution(struct solution *s) {
     free(s->paths_length_to_center);
     free(s->lengths_to_parent);
     free(s->parents);
+    for (int i = 0; i < s->problem_instance->n; ++i) {
+        free(s->children[i]);
+    }
+    free(s->children);
+    free(s->nbChildren);
     free(s);
 }
 
@@ -195,7 +217,7 @@ void printProblem(struct problem *p)
     printf("Buildings: %d\n", p->n);
     for(i=0; i<p->n; i++)
         printf("B%d: (%.2f,%.2f); ",i, p->coordinates[i].x, p->coordinates[i].y); 
-    printf("\nDistances (written into problem struct):\n\t");
+    printf("\nDistances:\n\t");
     for(i=0; i<p->n; i++)
         printf("B%d\t",i);
     printf("\n");
@@ -204,22 +226,6 @@ void printProblem(struct problem *p)
         printf("B%d\t",j);
         for(i=0; i<p->n; i++)
             printf("%.2f\t",p->distances[j][i]);
-        printf("\n");
-    }
-    /* calculated from coordinates */
-    printf("Distances (calculated):\n\t");
-    for(i=0; i<p->n; i++)
-        printf("B%d\t",i);
-    printf("\n");
-    for(j=0; j<p->n; j++)
-    {
-        printf("B%d\t",j);
-        for(i=0; i<p->n; i++)
-            printf("%.2f\t",euclidean_distance(
-                p->coordinates[j].x, p->coordinates[i].x,
-                p->coordinates[j].y, p->coordinates[i].y
-                )
-                );
         printf("\n");
     }
 }
@@ -408,7 +414,7 @@ int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
     printProblem(p);
     struct solution *s = allocSolution(p);
-    s = randomSolution(s);
+    //s = randomSolution(s);
     printSolution(s);    
     struct move* m = allocMove(p);
     printMove(m);
