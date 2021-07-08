@@ -433,13 +433,36 @@ bool addNeighbor(struct move *v, struct solution *s){
 }
 
 
+/**
+* returns a random integer between a and b.
+*/
+unsigned int randomInt(unsigned int a, unsigned int b){
+	return 0;
+}
+
+
 /* randomMove() implements uniform random sampling of the neighbourhood of a
  * given solution, with replacement.
  * The first input argument must be a pointer to a move previously allocated
  * with allocMove(), which is modified in place.
  */
 struct move *randomMove(struct move *v, const struct solution *s){
-	// sample randomly at unform the edge to be deleted.
+	// edges to delete and to add.
+	unsigned int edge_to_delete, edge_to_add = 0;
+	
+	unsigned solution_length = solution->problem_instance->n;
+
+	edge_to_delete = randomInt(1, solution_length);
+	unsigned parent = solution->parents[edge_to_delete];
+
+	x
+
+
+
+
+
+
+
 	return v;
 }
 
