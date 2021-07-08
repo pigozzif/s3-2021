@@ -36,7 +36,8 @@ struct solution{
 
 struct move{
     struct problem * problem_instance;
-    int node_concerned;
+    int source_concerned;
+    int target_concerned;
     int new_parent;
     double new_score;
 };
@@ -216,7 +217,8 @@ struct move *allocMove(struct problem *p) {
         return m;
     }
     m->problem_instance = p;
-    m->node_concerned = -1;
+    m->source_concerned = -1;
+    m->target_concerned = -1;
     m->new_parent = -1;
     m->new_score = 0.0;
     return m;
@@ -258,8 +260,7 @@ void printSolution(struct solution *s)
     n = s->problem_instance->n;
     printf("Solution - %d buildings:\n",n);
     printf("Build\tParent\tDistance\tPath to center\n");
-    for(i=0; i<n; i++)
-    {
+    for(i=0; i<n; i++) {
         printf("B%d\t%i\t%f\t%f\n",i,s->parents[i],s->lengths_to_parent[i],s->paths_length_to_center[i]);
     }
     printf("Score: %f\n",s->score);
@@ -272,33 +273,26 @@ void printMove(struct move* v)
         return;
     n = v->problem_instance->n;
     printf("Move - %d buildings:\n",n);
-    printf("Node: %d, new parent: %d, score: %lf\n", v->node_concerned, v->new_parent, v->new_score);
+    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->node_concerned, v->new_parent, v->new_score);
 }
 
-/* coppying src solution (struct) elements to dest solution (struct) elements */
-struct solution * copySolution(struct solution *dest, const struct solution *src)
-{
-    int i, n;
-    if(dest == NULL || src == NULL)
+struct solution *copySolution(struct solution *dest, const struct solution *src) {
+    if (dest == NULL || src == NULL) {
         return NULL;
-    dest->problem_instance = src->problem_instance;
-    dest->score = src->score;
-    n = src->problem_instance->n;
-    for(i=0; i<n; i++)
-    {
-        dest->paths_length_to_center[i] = src->paths_length_to_center[i];
-        dest->lengths_to_parent[i] = src->lengths_to_parent[i];
-        dest->parents[i] = src->parents[i];
     }
-    /* or maybe
-    memcpy(dest->paths_length_to_center, src->paths_length_to_center, n*sizeof(double));
-    memcpy(dest->lengths_to_parent, src->lengths_to_parent, n*sizeof(double));
-    memcpy(dest->parents, src->parents, n*sizeof(int));
-    */
-   return dest;
+    int n = dest->problem_instance->n;
+    dest->problem_instance = src->problem_instance;
+    memcpy(dest->paths_length_to_center, src->paths_length_to_center, n * sizeof(double));
+    memcpy(dest->lengths_to_parent, src->lengths_to_parent, n * sizeof(double));
+    memcpy(dest->parents, src->parents, n * sizeof(int));
+    memcpy(dest->children, src->children, n * sizeof(int*));
+    for (int i = 0; i < n; ++i) {
+        memcpy(&dest->children[i], &src->children[i], n * sizeof(int));
+    }
+    memcpy(dest->nbChildren, src->nbChildren, n * sizeof(int));
+    dest->score = src->score;
+    return dest;
 }
-
-
 
 // TO TEST
 
@@ -365,16 +359,34 @@ double * getObjectiveVector(double *objv, struct solution * s){
     return objv;
 }
 */
+/*struct solution *applyMove(struct solution *s, const struct move *v) {
+    s->parents[m->source_concerned] = m->new_parent;
+    
+    s->score = m->new_score;
+    int prev = -1;
+    int start_copying;
+    for (int i = 0; i < s->problem_instance->n; ++i) {
+         if (s->children[m->target_concerned][i] == m->source_concerned) {
+             
+         }
+         s->children
+         prev = s->children[m->target_concerned][i];
+    }
+    s->nbChildren[m->target_concerned] -= 1;
+    s->nbChildren[m->new_parent] += 1; 
+}*/
 
 
-// TO TEST
+// TO TEST 
+
 /*
+
 struct neighborhood{
     int *randomSample;
-    int *moves_decomposed; // [from0,to0,from1,to1 ....]
+    struct moves *moves; // [from0,to0,from1,to1 ....]
     int *maxSize;
     int *sampleSize;
-}
+};
 
 
 
@@ -385,10 +397,48 @@ struct move* randomMoveWOR(struct move *v, struct solution *s){
     }
     const int rand_res = rand()%n_view->sampleSize;
     const int idx = n_view->randomSample[rand_res];
-    v->new_parent = n_view->moves_decomposed[idx*2];
-    v->node_concerned = n_view->moves_decomposed[idx*2+1];
-    n_view->randomSample[idx]=n_view->randomSample[sampleSize--];
+    v->new_parent = n_view->moves[idx]->new_parent;
+    v->node_concerned = n_view->moves[idx]->node_concerned;
+    n_view->randomSample[rand_res] == n_view->randomSample[--sampleSize];
     return v;
+}
+
+struct solution *resetRandomMoveWOR(struct solution *s){
+
+// HEre we should be sure the memory of neighborhood is allocated
+
+    struct neighborhood * n_view = s->neighborhood;
+    int idx =0 ;
+    for(int parent=0;parent<s->problem_instance->n-1;parent++){
+        for(int from_idx=0;from_idx<s->nbChildren[parent];from_idx++){
+            const int from = s->children[parent][from_idx];
+            for (int to_idx=0; to_idx>s->nbChildren[parent]; to_idx++) {
+                const int to = s->children[parent][to_idx] ;
+                if(from!=to){
+                    n_view->moves[idx]->node_concerned=from;
+                    n_view->moves[idx++]->new_parent=to;
+                }
+            }
+            n_view->moves[idx]->node_concerned=s->parents[parent];
+            n_view->moves[idx++]->new_parent=s->parents[parent];
+        }
+    }
+    const int root = s->problem_instance->n-1;
+    for(int from_idx=0;from_idx<s->nbChildren[root];from_idx++){
+        const int from = s->children[root][from_idx];
+        for (int to_idx=0; to_idx>s->nbChildren[root]; to_idx++) {
+            const int to = s->children[root][to_idx] ;
+            if(from!=to){
+                n_view->moves[idx]->node_concerned=from;
+                n_view->moves[idx++]->new_parent=to;
+            }
+        }
+    }
+    n_view->sampleSize=n_view->maxSize=idx;
+    for(int i=0;i<idx;i++){
+        n_view->randomSample[i]=i;
+    }
+    return s;
 }
 */
 
@@ -415,7 +465,7 @@ void freeNeighborhood(struct neighborhood * n){
 * Chechs if the solution generated by the move v is
 * in the neighborhood of solution s.
 */
-bool inNeighbors(struct move *v, struct solution *s){
+int inNeighbors(struct move *v, struct solution *s){
 
 
 }
@@ -425,7 +475,7 @@ bool inNeighbors(struct move *v, struct solution *s){
 * Chechs if the solution generated by the move v is
 * in the neighborhood of a solution s.
 */
-bool addNeighbor(struct move *v, struct solution *s){
+void addNeighbor(struct move *v, struct solution *s){
 
 
 }
@@ -490,17 +540,14 @@ struct move *randomMove(struct move *v, const struct solution *s){
 /* copyMove() copies the contents of the second argument to the first
  * argument, which must have been previously allocated with allocMove().
  */
-struct move *copyMove(struct move *dest, const struct move *src){
-	dest->problem_instance = src->problem_instance;
-    dest->node_concerned = src-> node_concerned;
+struct move *copyMove(struct move *dest, const struct move *src) {
+    dest->problem_instance = src->problem_instance;
+    dest->source_concerned = src-> source_concerned;
+    dest->target_concerned = src->target_concerned;
     dest->new_parent = src-> new_parent;
     dest->new_score = src-> new_score;
-    
-	return dest;
+    return dest;
 }
-
-
-
 
 /* getObjectiveIncrement() supports single and multiple objective move
  * evaluation with respect to the solution for which it was generated, before
@@ -515,7 +562,7 @@ struct move *copyMove(struct move *dest, const struct move *src){
  * argument is const.
  */
 double *getObjectiveIncrement(double *obji, struct move *v, struct solution *s){
-	return 0.0;
+	return obji;
 }
 
 
@@ -527,20 +574,28 @@ double *getObjectiveIncrement(double *obji, struct move *v, struct solution *s){
  * pointer if a new move is generated or NULL if there are no moves left.
  */
 struct move *randomMoveWOR(struct move *v, struct solution *s){
-	return NULL
+	return NULL;
 }
 
 // JUST FOR DEBUGGING
 int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
-    printProblem(p);
+//    printProblem(p);
     struct solution *s = allocSolution(p);
     s = randomSolution(s);
-    printSolution(s);    
+    printSolution(s);
+    struct solution *s2 = allocSolution(p);
+    s2 = copySolution(s2, s);
+    printSolution(s2);    
     struct move* m = allocMove(p);
-    printMove(m);
+    //struct move* m2 = allocMove(p);
+    //m2 = copyMove(m2, m);
+    //printMove(m);
+    //printMove(m2);
     freeSolution(s);
+    //freeSolution(s2);
     freeMove(m);
+    //freeMove(m2);
     freeProblem(p);
     return 0;
 }
