@@ -567,9 +567,12 @@ double *getObjectiveIncrement(double *obji, struct move *v, struct solution *s){
     struct solution *copy = allocSolution(s->problem_instance);
     copy = copySolution(copy, s);
     copy = applyMove(copy, v);
-    double *increment = getObjectiveVector(obji, copy);
-    v->new_score = *increment;
-    return increment;
+    double increment = 0.0;
+    for (int i = 0; i < s->problem_instance->n; ++i) {
+        increment += s->problem_instance->trench_cost * s->lengths_to_parent[i] + s->problem_instance->cable_cost * s->paths_length_to_center[i];
+    }
+    v->new_score = increment;
+    return &increment;
 }
 
 // JUST FOR DEBUGGING
@@ -584,11 +587,13 @@ int main(void) {
 //    printf("%d", getNeighbourhoodSize(s));
     double obj = *getObjectiveVector(&obj,s2);
     printSolution(s2);
-    printf("score %lf\n",obj);
+    //printf("score %lf\n",obj);
     struct move* m = allocMove(p);
     m->source_concerned = 0;
     m->target_concerned = 2;
     m->new_parent = 6;
+    obj = *getObjectiveIncrement(&obj, m, s2);
+    printf("%lf\n", obj);
     s = applyMove(s2, m);
     printSolution(s2);
     //struct move* m2 = allocMove(p);
