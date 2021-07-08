@@ -116,8 +116,10 @@ struct problem *newProblem(char *filename, double tc, double cc) {
          if (new_problem->distances[i] == NULL) {
               return NULL;
          }
+    }
+    for (int i = 0; i < n_buildings; ++i) {
          for (int j = 0; j < n_buildings; ++j) {
-              new_problem->distances[i][j] = euclidean_distance(new_problem->coordinates[i].x, new_problem->coordinates[i].y, new_problem->coordinates[j].x, new_problem->coordinates[j].y);
+              new_problem->distances[i][j] = euclidean_distance(new_problem->coordinates[i].x, new_problem->coordinates[j].x, new_problem->coordinates[i].y, new_problem->coordinates[j].y);
          }
     }
     new_problem->nbChildren = (int*) malloc(n_buildings * sizeof(int));
@@ -205,7 +207,7 @@ void printProblem(struct problem *p)
     printf("Buildings: %d\n", p->n);
     for(i=0; i<p->n; i++)
         printf("B%d: (%.2f,%.2f); ",i, p->coordinates[i].x, p->coordinates[i].y); 
-    printf("\nDistances (written into problem struct):\n\t");
+    printf("\nDistances:\n\t");
     for(i=0; i<p->n; i++)
         printf("B%d\t",i);
     printf("\n");
@@ -214,22 +216,6 @@ void printProblem(struct problem *p)
         printf("B%d\t",j);
         for(i=0; i<p->n; i++)
             printf("%.2f\t",p->distances[j][i]);
-        printf("\n");
-    }
-    /* calculated from coordinates */
-    printf("Distances (calculated):\n\t");
-    for(i=0; i<p->n; i++)
-        printf("B%d\t",i);
-    printf("\n");
-    for(j=0; j<p->n; j++)
-    {
-        printf("B%d\t",j);
-        for(i=0; i<p->n; i++)
-            printf("%.2f\t",euclidean_distance(
-                p->coordinates[j].x, p->coordinates[i].x,
-                p->coordinates[j].y, p->coordinates[i].y
-                )
-                );
         printf("\n");
     }
 }
