@@ -24,16 +24,6 @@ struct problem{
     struct coordinate *coordinates;
 };
 
-struct solution{
-	struct problem *problem_instance;
-	double *paths_length_to_center; // total path to the center from node n
-	double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
-	int * parents; // the array of indexes of the parent for each node.
-	double score; // the objective function value for the solution.
-        int **children;
-        int *nbChildren;
-};
-
 struct move{
     struct problem * problem_instance;
     int source_concerned;
@@ -42,24 +32,22 @@ struct move{
     double new_score;
 };
 
+struct neighborhood{
+    int *randomSample;
+    int *moves; // [from0,to0,from1,to1 ....]
+    int maxSize;
+    int sampleSize;
+};
 
-/**
-* This is a basic implementation of the neighborhood.
-* it uses a list for maintaing the visited solutions in the
-* neighborhood of a solution x.
-* Note that this should be implemented as a set using
-* some tree implementation, so we will have a O(log(n)) compelxity
-* for the existance request.
-* But for time reseason, we just use an array.
-* TODO: implement a neighborhood using a set.
-*
-* Neighborhood definition:
-*
-*/
-struct neighborhood {
-	struct solution * x; // current solution
-	unsigned int neighborhood_size;
-	struct solution * neihborgs; // array of sampled neighbors.
+struct solution{
+	struct problem *problem_instance;
+    struct neighborhood * neighborhood;
+	double *paths_length_to_center; // total path to the center from node n
+	double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
+	int * parents; // the array of indexes of the parent for each node.
+	double score; // the objective function value for the solution.
+    int **children;
+    int *nbChildren;
 };
 
 /**
@@ -102,7 +90,7 @@ struct problem *newProblem(char *filename, double tc, double cc) {
         }
         //printf("%c", ch);
     }
-    fclose(fp);
+    //fclose(fp);
 
     // reopen file and fill array with buildings' coordinates
     FILE* new_fp;
@@ -281,11 +269,16 @@ void printMove(struct move* v)
         return;
     n = v->problem_instance->n;
     printf("Move - %d buildings:\n",n);
+<<<<<<< HEAD
 
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
 
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
 
+=======
+    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
+    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
+>>>>>>> 9fbc337fb9727cf65e9ffc55648f0610b1ec404d
 }
 
 struct solution *copySolution(struct solution *dest, const struct solution *src) {
@@ -345,9 +338,6 @@ struct solution * randomSolution(struct solution *s){
     return s;
 }
 
-
-// TO TEST
-/*
 void recursiveObjectiveVector(double * trenches, double * cables, int node, struct solution * s){
     for(int i=0;i<s->nbChildren[node];i++){
         const int child = s->children[node][i];
@@ -358,48 +348,47 @@ void recursiveObjectiveVector(double * trenches, double * cables, int node, stru
         }
     }
 }
-*/
 
-// TO TEST
-/*
 double * getObjectiveVector(double *objv, struct solution * s){
     const int root = s->problem_instance->n-1;
     double trenches =0.0;
     double cables = 0.0;
     recursiveObjectiveVector(&trenches,&cables,root,s);
-    *objv = trenches*s->problem_instance->trench_cost + cables*s->problem_instance->cable_cost;
+    s->score = *objv = trenches*s->problem_instance->trench_cost + cables*s->problem_instance->cable_cost;
     return objv;
 }
-*/
-/*struct solution *applyMove(struct solution *s, const struct move *v) {
-    s->parents[m->source_concerned] = m->new_parent;
-    
-    s->score = m->new_score;
-    int prev = -1;
-    int start_copying;
-    for (int i = 0; i < s->problem_instance->n; ++i) {
-         if (s->children[m->target_concerned][i] == m->source_concerned) {
-             
-         }
-         s->children
-         prev = s->children[m->target_concerned][i];
+
+void recursivelyUpdateNode(struct solution *s, int node) {
+    s->lengths_to_parent[node] = s->problem_instance->distances[node][s->parents[node]];
+    s->paths_length_to_center[node] = s->paths_length_to_center[s->parents[node]] + s->lengths_to_parent[node];    
+    for (int i = 0; i < s->nbChildren[node]; ++i) {
+        const int child = s->children[node][i];
+        if (s->nbChildren[child] > 0){
+            recursivelyUpdateNode(s, child);
+        }
     }
-    s->nbChildren[m->target_concerned] -= 1;
-    s->nbChildren[m->new_parent] += 1; 
-}*/
+}
+
+struct solution *applyMove(struct solution *s, const struct move *v) {
+    s->parents[v->source_concerned] = v->new_parent;
+    s->score = v->new_score;
+    int start_copying = 0;
+    for (int i = 0; i < s->problem_instance->n; ++i) {
+         if (s->children[v->target_concerned][i] == v->source_concerned) {
+             start_copying = 1;
+         }
+         if (start_copying == 1 && i != s->problem_instance->n) {
+             s->children[v->target_concerned][i] = s->children[v->target_concerned][i];    
+         }
+    }
+    s->nbChildren[v->target_concerned] -= 1;
+    s->nbChildren[v->new_parent] += 1;
+    recursivelyUpdateNode(s, v->source_concerned);
+    return s; 
+}
 
 
 // TO TEST 
-
-/*
-
-struct neighborhood{
-    int *randomSample;
-    struct moves *moves; // [from0,to0,from1,to1 ....]
-    int *maxSize;
-    int *sampleSize;
-};
-
 
 
 struct move* randomMoveWOR(struct move *v, struct solution *s){
@@ -409,16 +398,14 @@ struct move* randomMoveWOR(struct move *v, struct solution *s){
     }
     const int rand_res = rand()%n_view->sampleSize;
     const int idx = n_view->randomSample[rand_res];
-    v->new_parent = n_view->moves[idx]->new_parent;
-    v->node_concerned = n_view->moves[idx]->node_concerned;
-    n_view->randomSample[rand_res] == n_view->randomSample[--sampleSize];
+    v->source_concerned = n_view->moves[idx*2];
+    v->new_parent = n_view->moves[idx*2+1];
+    n_view->randomSample[rand_res] = n_view->randomSample[--n_view->sampleSize];
     return v;
 }
 
 struct solution *resetRandomMoveWOR(struct solution *s){
-
 // HEre we should be sure the memory of neighborhood is allocated
-
     struct neighborhood * n_view = s->neighborhood;
     int idx =0 ;
     for(int parent=0;parent<s->problem_instance->n-1;parent++){
@@ -427,12 +414,12 @@ struct solution *resetRandomMoveWOR(struct solution *s){
             for (int to_idx=0; to_idx>s->nbChildren[parent]; to_idx++) {
                 const int to = s->children[parent][to_idx] ;
                 if(from!=to){
-                    n_view->moves[idx]->node_concerned=from;
-                    n_view->moves[idx++]->new_parent=to;
+                    n_view->moves[idx++]=from;
+                    n_view->moves[idx++]=to;
                 }
             }
-            n_view->moves[idx]->node_concerned=s->parents[parent];
-            n_view->moves[idx++]->new_parent=s->parents[parent];
+            n_view->moves[idx++]=from;
+            n_view->moves[idx++]=s->parents[parent];
         }
     }
     const int root = s->problem_instance->n-1;
@@ -441,18 +428,17 @@ struct solution *resetRandomMoveWOR(struct solution *s){
         for (int to_idx=0; to_idx>s->nbChildren[root]; to_idx++) {
             const int to = s->children[root][to_idx] ;
             if(from!=to){
-                n_view->moves[idx]->node_concerned=from;
-                n_view->moves[idx++]->new_parent=to;
+                n_view->moves[idx++]=from;
+                n_view->moves[idx++]=to;
             }
         }
     }
-    n_view->sampleSize=n_view->maxSize=idx;
-    for(int i=0;i<idx;i++){
+    n_view->sampleSize=n_view->maxSize=idx/2;
+    for(int i=0;i<n_view->sampleSize;i++){
         n_view->randomSample[i]=i;
     }
     return s;
 }
-*/
 
 int getNeighbourhoodSize(struct solution *s) {
     int ans = 0;
@@ -586,33 +572,38 @@ struct move *copyMove(struct move *dest, const struct move *src) {
  * argument is const.
  */
 double *getObjectiveIncrement(double *obji, struct move *v, struct solution *s){
-	return obji;
-}
-
-
-
-/* randomMoveWOR() implements uniform random sampling of the neighbourhood of
- * a given solution, without replacement.
- * The first input argument must be a pointer to a move previously allocated
- * with allocMove(), which is modified in place. The function returns this
- * pointer if a new move is generated or NULL if there are no moves left.
- */
-struct move *randomMoveWOR(struct move *v, struct solution *s){
-	return NULL;
+    struct solution *copy = allocSolution(s->problem_instance);
+    copy = copySolution(copy, s);
+    copy = applyMove(copy, v);
+    double increment = 0.0;
+    for (int i = 0; i < s->problem_instance->n; ++i) {
+        increment += s->problem_instance->trench_cost * s->lengths_to_parent[i] + s->problem_instance->cable_cost * s->paths_length_to_center[i];
+    }
+    v->new_score = increment;
+    return &increment;
 }
 
 // JUST FOR DEBUGGING
 int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
-//    printProblem(p);
+    printProblem(p);
     struct solution *s = allocSolution(p);
     s = randomSolution(s);
     printSolution(s);
-//    struct solution *s2 = allocSolution(p);
-//    s2 = copySolution(s2, s);
-    printf("%d", getNeighbourhoodSize(s));
-    //printSolution(s2);    
+    struct solution *s2 = allocSolution(p);
+    s2 = copySolution(s2, s);
+//    printf("%d", getNeighbourhoodSize(s));
+    double obj = *getObjectiveVector(&obj,s2);
+    printSolution(s2);
+    //printf("score %lf\n",obj);
     struct move* m = allocMove(p);
+    m->source_concerned = 0;
+    m->target_concerned = 2;
+    m->new_parent = 6;
+    obj = *getObjectiveIncrement(&obj, m, s2);
+    printf("%lf\n", obj);
+    s = applyMove(s2, m);
+    printSolution(s2);
     //struct move* m2 = allocMove(p);
     //m2 = copyMove(m2, m);
     //printMove(m);
