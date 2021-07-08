@@ -273,7 +273,7 @@ void printMove(struct move* v)
         return;
     n = v->problem_instance->n;
     printf("Move - %d buildings:\n",n);
-    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->node_concerned, v->new_parent, v->new_score);
+    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
 }
 
 struct solution *copySolution(struct solution *dest, const struct solution *src) {
@@ -501,29 +501,35 @@ struct move *randomMove(struct move *v, const struct solution *s){
 	
 	unsigned solution_length = s->problem_instance->n;
 
-	edge_to_delete = randomInt(1, solution_length);
+	edge_to_delete = randomInt(0, solution_length-2);
 	unsigned parent = s->parents[edge_to_delete];
 
 	// get list of childerns for the parent
-	unsigned int nb_childerns = s->nbChilderns[parent];
+	unsigned int parent_nb_childerns = s->nbChildren[parent];
 
 	// 0..to nb_childerns will represent the indexes of childerns
 	// of the parent, and nb_childerns + 1 will represent the index of the parent of the parent.
-	unsigned int index_new_parent = randInt(0, nb_childerns + 1);
+	unsigned int index_new_parent = randInt(0, parent_nb_childerns - 1);
 
 
-	if (index_new_parent == nb_childerns + 1){
+	while(index_new_parent == edge_to_delete){
+			 index_new_parent = randInt(0, parent_nb_childerns - 1);
+
+	}
+
+	if (index_new_parent == parent_nb_childerns - 1){
 		// the parent of the parent.
 		edge_to_add = s->parents[parent]; 
 	
 	}else{
 		// pick one of the childerns randomly at uniform.
-		edge_to_add = s->childerns[parent][index_new_parent];
+
+		edge_to_add = s->children[parent][index_new_parent];
 
 	}
 
 	// update the move
-	v-> node_concerned = edge_to_delete;
+	v-> source_concerned = edge_to_delete;
 	v-> new_parent = edge_to_add;
 	// v->new_score = getObjectiveIncrement(obji, v, s);
 
