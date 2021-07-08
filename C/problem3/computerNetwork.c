@@ -201,6 +201,63 @@ void printMove(struct move* v) {
     printf("============\n");
 }
 
+
+
+/* randomMove() implements uniform random sampling of the neighbourhood of a
+ * given solution, with replacement.
+ * The first input argument must be a pointer to a move previously allocated
+ * with allocMove(), which is modified in place.
+ */
+struct move *randomMove(struct move *v, const struct solution *s){
+	// sample randomly at unform the edge to be deleted.
+	return v;
+}
+
+
+
+
+  /**************************/
+ /* Operations on moves*/
+/**************************/
+
+/* copyMove() copies the contents of the second argument to the first
+ * argument, which must have been previously allocated with allocMove().
+ */
+struct move *copyMove(struct move *dest, const struct move *src){
+	return dest;
+}
+
+
+
+
+/* getObjectiveIncrement() supports single and multiple objective move
+ * evaluation with respect to the solution for which it was generated, before
+ * it is actually applied to that solution (if it ever is). The result of
+ * evaluating a move with respect to a solution other than that for which it
+ * was generated (or to a pristine copy of it) is undefined.
+ * Once a move is evaluated, results may be cached in the move itself, so
+ * that they can be used by applyMove() to update the evaluation state of
+ * the solution more efficiently.
+ * In addition, results may also be cached in the solution in order
+ * to speed up evaluation of future moves. Consequently, neither formal
+ * argument is const.
+ */
+double *getObjectiveIncrement(double *obji, struct move *v, struct solution *s){
+	return 0.0;
+}
+
+
+
+/* randomMoveWOR() implements uniform random sampling of the neighbourhood of
+ * a given solution, without replacement.
+ * The first input argument must be a pointer to a move previously allocated
+ * with allocMove(), which is modified in place. The function returns this
+ * pointer if a new move is generated or NULL if there are no moves left.
+ */
+struct move *randomMoveWOR(struct move *v, struct solution *s){
+	return NULL
+}
+
 // JUST FOR DEBUGGING
 int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
