@@ -36,7 +36,8 @@ struct solution{
 
 struct move{
     struct problem * problem_instance;
-    int node_concerned;
+    int source_concerned;
+    int target_concerned;
     int new_parent;
     double new_score;
 };
@@ -216,7 +217,8 @@ struct move *allocMove(struct problem *p) {
         return m;
     }
     m->problem_instance = p;
-    m->node_concerned = -1;
+    m->source_concerned = -1;
+    m->target_concerned = -1;
     m->new_parent = -1;
     m->new_score = 0.0;
     return m;
@@ -258,8 +260,7 @@ void printSolution(struct solution *s)
     n = s->problem_instance->n;
     printf("Solution - %d buildings:\n",n);
     printf("Build\tParent\tDistance\tPath to center\n");
-    for(i=0; i<n; i++)
-    {
+    for(i=0; i<n; i++) {
         printf("B%d\t%i\t%f\t%f\n",i,s->parents[i],s->lengths_to_parent[i],s->paths_length_to_center[i]);
     }
     printf("Score: %f\n",s->score);
@@ -272,7 +273,7 @@ void printMove(struct move* v)
         return;
     n = v->problem_instance->n;
     printf("Move - %d buildings:\n",n);
-    printf("Node: %d, new parent: %d, score: %lf\n", v->node_concerned, v->new_parent, v->new_score);
+    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->node_concerned, v->new_parent, v->new_score);
 }
 
 struct solution *copySolution(struct solution *dest, const struct solution *src) {
@@ -358,7 +359,22 @@ double * getObjectiveVector(double *objv, struct solution * s){
     return objv;
 }
 */
-
+/*struct solution *applyMove(struct solution *s, const struct move *v) {
+    s->parents[m->source_concerned] = m->new_parent;
+    
+    s->score = m->new_score;
+    int prev = -1;
+    int start_copying;
+    for (int i = 0; i < s->problem_instance->n; ++i) {
+         if (s->children[m->target_concerned][i] == m->source_concerned) {
+             
+         }
+         s->children
+         prev = s->children[m->target_concerned][i];
+    }
+    s->nbChildren[m->target_concerned] -= 1;
+    s->nbChildren[m->new_parent] += 1; 
+}*/
 
 // TO TEST
 /*
@@ -446,7 +462,8 @@ struct move *randomMove(struct move *v, const struct solution *s){
  */
 struct move *copyMove(struct move *dest, const struct move *src) {
     dest->problem_instance = src->problem_instance;
-    dest->node_concerned = src-> node_concerned;
+    dest->source_concerned = src-> source_concerned;
+    dest->target_concerned = src->target_concerned;
     dest->new_parent = src-> new_parent;
     dest->new_score = src-> new_score;
     return dest;
