@@ -22,8 +22,6 @@ struct problem{
     double cable_cost;
     double **distances;  // distance matrix among buildings
     struct coordinate *coordinates;
-    int **children;
-    int *nbChildren;
 };
 
 struct solution{
@@ -32,6 +30,8 @@ struct solution{
 	double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
 	int * parents; // the array of indexes of the parent for each node.
 	double score; // the objective function value for the solution.
+        int **children;
+        int *nbChildren;
 };
 
 struct move{
@@ -122,14 +122,6 @@ struct problem *newProblem(char *filename, double tc, double cc) {
               new_problem->distances[i][j] = euclidean_distance(new_problem->coordinates[i].x, new_problem->coordinates[j].x, new_problem->coordinates[i].y, new_problem->coordinates[j].y);
          }
     }
-    new_problem->nbChildren = (int*) malloc(n_buildings * sizeof(int));
-    for (int i = 0; i < n_buildings; ++i) {
-        new_problem->nbChildren[i] = 0;
-    }
-    new_problem->children = (int**) malloc(n_buildings * sizeof(int*));
-    for (int i = 0; i < n_buildings; ++i) {
-        new_problem->children[i] = (int*) malloc(n_buildings * sizeof(int));
-    }
 
     // free resources and return
     fclose(new_fp);
@@ -170,6 +162,19 @@ struct solution *allocSolution(struct problem *p) {
     for (int i = p->n - 1; i >= 0; --i) {
         sol->parents[i] = -1;
     }
+    sol->nbChildren = (int*) malloc(sol->problem_instance->n * sizeof(int));
+    for (int i = 0; i < sol->problem_instance->n; ++i) {
+        sol->nbChildren[i] = 0;
+    }
+    sol->children = (int**) malloc(sol->problem_instance->n * sizeof(int*));
+    for (int i = 0; i < sol->problem_instance->n; ++i) {
+        sol->children[i] = (int*) malloc(sol->problem_instance->n * sizeof(int));
+    }
+    for (int i = 0; i < sol->problem_instance->n; ++i) {
+        for (int j = 0; j < sol->problem_instance->n; ++j) {
+            sol->children[i][j] = -1;
+        }
+    }
     return sol;
 }
 
@@ -177,6 +182,11 @@ void freeSolution(struct solution *s) {
     free(s->paths_length_to_center);
     free(s->lengths_to_parent);
     free(s->parents);
+    for (int i = 0; i < s->problem_instance->n; ++i) {
+        free(s->children[i]);
+    }
+    free(s->children);
+    free(s->nbChildren);
     free(s);
 }
 
