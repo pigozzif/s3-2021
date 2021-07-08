@@ -364,6 +364,11 @@ struct move *randomMove(struct move *v, const struct solution *s){
  * argument, which must have been previously allocated with allocMove().
  */
 struct move *copyMove(struct move *dest, const struct move *src){
+	dest->problem_instance = src->problem_instance;
+    dest->node_concerned = src-> node_concerned;
+    dest->new_parent = src-> new_parent;
+    dest->new_score = src-> new_score;
+    
 	return dest;
 }
 
