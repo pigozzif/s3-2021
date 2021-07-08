@@ -281,7 +281,7 @@ struct solution * copySolution(struct solution *dest, const struct solution *src
 
 
 // TO TEST
-/*
+
 struct solution * randomSolution(struct solution *s){
     const int N = s->problem_instance->n; 
     const int n = N-2;
@@ -318,7 +318,7 @@ struct solution * randomSolution(struct solution *s){
     free(c);
     return s;
 }
-*/
+
 
 // TO TEST
 /*
@@ -352,7 +352,7 @@ int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
     printProblem(p);
     struct solution *s = allocSolution(p);
-    //s = randomSolution(s);
+    s = randomSolution(s);
     printSolution(s);    
     struct move* m = allocMove(p);
     printMove(m);
