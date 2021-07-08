@@ -24,16 +24,6 @@ struct problem{
     struct coordinate *coordinates;
 };
 
-struct solution{
-	struct problem *problem_instance;
-	double *paths_length_to_center; // total path to the center from node n
-	double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
-	int * parents; // the array of indexes of the parent for each node.
-	double score; // the objective function value for the solution.
-        int **children;
-        int *nbChildren;
-};
-
 struct move{
     struct problem * problem_instance;
     int source_concerned;
@@ -42,24 +32,22 @@ struct move{
     double new_score;
 };
 
+struct neighborhood{
+    int *randomSample;
+    struct move *moves; // [from0,to0,from1,to1 ....]
+    int *maxSize;
+    int *sampleSize;
+};
 
-/**
-* This is a basic implementation of the neighborhood.
-* it uses a list for maintaing the visited solutions in the
-* neighborhood of a solution x.
-* Note that this should be implemented as a set using
-* some tree implementation, so we will have a O(log(n)) compelxity
-* for the existance request.
-* But for time reseason, we just use an array.
-* TODO: implement a neighborhood using a set.
-*
-* Neighborhood definition:
-*
-*/
-struct neighborhood {
-	struct solution * x; // current solution
-	unsigned int neighborhood_size;
-	struct solution * neihborgs; // array of sampled neighbors.
+struct solution{
+	struct problem *problem_instance;
+    struct neighborhood * neighborhood;
+	double *paths_length_to_center; // total path to the center from node n
+	double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
+	int * parents; // the array of indexes of the parent for each node.
+	double score; // the objective function value for the solution.
+    int **children;
+    int *nbChildren;
 };
 
 /**
@@ -102,7 +90,7 @@ struct problem *newProblem(char *filename, double tc, double cc) {
         }
         //printf("%c", ch);
     }
-    fclose(fp);
+    //fclose(fp);
 
     // reopen file and fill array with buildings' coordinates
     FILE* new_fp;
@@ -153,7 +141,7 @@ struct problem *newProblem(char *filename, double tc, double cc) {
     }
 
     // free resources and return
-    fclose(new_fp);
+    //fclose(new_fp);
     return new_problem;
 }
 
@@ -342,9 +330,6 @@ struct solution * randomSolution(struct solution *s){
     return s;
 }
 
-
-// TO TEST
-/*
 void recursiveObjectiveVector(double * trenches, double * cables, int node, struct solution * s){
     for(int i=0;i<s->nbChildren[node];i++){
         const int child = s->children[node][i];
@@ -355,19 +340,16 @@ void recursiveObjectiveVector(double * trenches, double * cables, int node, stru
         }
     }
 }
-*/
 
-// TO TEST
-/*
 double * getObjectiveVector(double *objv, struct solution * s){
     const int root = s->problem_instance->n-1;
     double trenches =0.0;
     double cables = 0.0;
     recursiveObjectiveVector(&trenches,&cables,root,s);
-    *objv = trenches*s->problem_instance->trench_cost + cables*s->problem_instance->cable_cost;
+    s->score = *objv = trenches*s->problem_instance->trench_cost + cables*s->problem_instance->cable_cost;
     return objv;
 }
-*/
+
 struct solution *applyMove(struct solution *s, const struct move *v) {
     s->parents[v->source_concerned] = v->new_parent;
     s->score = v->new_score;
@@ -387,17 +369,7 @@ struct solution *applyMove(struct solution *s, const struct move *v) {
 
 
 // TO TEST 
-
 /*
-
-struct neighborhood{
-    int *randomSample;
-    struct moves *moves; // [from0,to0,from1,to1 ....]
-    int *maxSize;
-    int *sampleSize;
-};
-
-
 
 struct move* randomMoveWOR(struct move *v, struct solution *s){
     struct neighborhood * n_view = s->neighborhood;
@@ -601,14 +573,16 @@ struct move *randomMoveWOR(struct move *v, struct solution *s){
 // JUST FOR DEBUGGING
 int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
-//    printProblem(p);
+    printProblem(p);
     struct solution *s = allocSolution(p);
     s = randomSolution(s);
     printSolution(s);
-//    struct solution *s2 = allocSolution(p);
-//    s2 = copySolution(s2, s);
+    struct solution *s2 = allocSolution(p);
+    s2 = copySolution(s2, s);
     printf("%d", getNeighbourhoodSize(s));
-    //printSolution(s2);    
+    double obj = *getObjectiveVector(&obj,s2);
+    printSolution(s2);
+    printf("score %lf\n",obj);
     struct move* m = allocMove(p);
     m->source_concerned = 0;
     m->target_concerned = 2;
