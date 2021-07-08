@@ -301,7 +301,7 @@ struct solution * copySolution(struct solution *dest, const struct solution *src
 
 
 // TO TEST
-/*
+
 struct solution * randomSolution(struct solution *s){
     const int N = s->problem_instance->n; 
     const int n = N-2;
@@ -338,7 +338,7 @@ struct solution * randomSolution(struct solution *s){
     free(c);
     return s;
 }
-*/
+
 
 // TO TEST
 /*
@@ -381,9 +381,7 @@ struct neighborhood{
 struct move* randomMoveWOR(struct move *v, struct solution *s){
     struct neighborhood * n_view = s->neighborhood;
     if(n_view->sampleSize<1){
-        v->node_concerned=-1;
-        v->new_parent=-1;
-        return v // THIS MOVE MUST NOT BE APPLIED
+        return NULL;
     }
     const int rand_res = rand()%n_view->sampleSize;
     const int idx = n_view->randomSample[rand_res];
@@ -521,7 +519,7 @@ int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
     printProblem(p);
     struct solution *s = allocSolution(p);
-    //s = randomSolution(s);
+    s = randomSolution(s);
     printSolution(s);    
     struct move* m = allocMove(p);
     printMove(m);
