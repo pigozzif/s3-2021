@@ -442,6 +442,17 @@ struct solution *resetRandomMoveWOR(struct solution *s){
 }
 */
 
+int getNeighbourhoodSize(struct solution *s) {
+    int ans = 0;
+    for (int node = 0; node < s->problem_instance->n - 1; ++node) {
+         ans += s->nbChildren[s->parents[node]] - 1;
+         if (s->parents[s->parents[node]] != -1) {
+             ans += 1;
+         }
+    }
+    return ans;
+}
+
 /**
 * Allocate the memory for the neighborhood.
 *
@@ -495,7 +506,7 @@ unsigned int randomInt(unsigned int a, unsigned int b){
  * The first input argument must be a pointer to a move previously allocated
  * with allocMove(), which is modified in place.
  */
-struct move *randomMove(struct move *v, const struct solution *s){
+/*struct move *randomMove(struct move *v, const struct solution *s){
 	// edges to delete and to add.
 	unsigned int edge_to_delete, edge_to_add = 0;
 	
@@ -528,7 +539,7 @@ struct move *randomMove(struct move *v, const struct solution *s){
 	// v->new_score = getObjectiveIncrement(obji, v, s);
 
 	return v;
-}
+}*/
 
 
 
@@ -584,9 +595,10 @@ int main(void) {
     struct solution *s = allocSolution(p);
     s = randomSolution(s);
     printSolution(s);
-    struct solution *s2 = allocSolution(p);
-    s2 = copySolution(s2, s);
-    printSolution(s2);    
+//    struct solution *s2 = allocSolution(p);
+//    s2 = copySolution(s2, s);
+    printf("%d", getNeighbourhoodSize(s));
+    //printSolution(s2);    
     struct move* m = allocMove(p);
     //struct move* m2 = allocMove(p);
     //m2 = copyMove(m2, m);
