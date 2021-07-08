@@ -367,7 +367,32 @@ double * getObjectiveVector(double *objv, struct solution * s){
 */
 
 
+// TO TEST
+/*
+struct neighborhood{
+    int *randomSample;
+    int *moves_decomposed; // [from0,to0,from1,to1 ....]
+    int *maxSize;
+    int *sampleSize;
+}
 
+
+
+struct move* randomMoveWOR(struct move *v, struct solution *s){
+    struct neighborhood * n_view = s->neighborhood;
+    if(n_view->sampleSize<1){
+        v->node_concerned=-1;
+        v->new_parent=-1;
+        return v // THIS MOVE MUST NOT BE APPLIED
+    }
+    const int rand_res = rand()%n_view->sampleSize;
+    const int idx = n_view->randomSample[rand_res];
+    v->new_parent = n_view->moves_decomposed[idx*2];
+    v->node_concerned = n_view->moves_decomposed[idx*2+1];
+    n_view->randomSample[idx]=n_view->randomSample[sampleSize--];
+    return v;
+}
+*/
 
 /**
 * Allocate the memory for the neighborhood.
