@@ -376,14 +376,17 @@ double * getObjectiveVector(double *objv, struct solution * s){
     s->nbChildren[m->new_parent] += 1; 
 }*/
 
-// TO TEST
+
+// TO TEST 
+
 /*
+
 struct neighborhood{
     int *randomSample;
-    int *moves_decomposed; // [from0,to0,from1,to1 ....]
+    struct moves *moves; // [from0,to0,from1,to1 ....]
     int *maxSize;
     int *sampleSize;
-}
+};
 
 
 
@@ -394,10 +397,48 @@ struct move* randomMoveWOR(struct move *v, struct solution *s){
     }
     const int rand_res = rand()%n_view->sampleSize;
     const int idx = n_view->randomSample[rand_res];
-    v->new_parent = n_view->moves_decomposed[idx*2];
-    v->node_concerned = n_view->moves_decomposed[idx*2+1];
-    n_view->randomSample[idx]=n_view->randomSample[sampleSize--];
+    v->new_parent = n_view->moves[idx]->new_parent;
+    v->node_concerned = n_view->moves[idx]->node_concerned;
+    n_view->randomSample[rand_res] == n_view->randomSample[--sampleSize];
     return v;
+}
+
+struct solution *resetRandomMoveWOR(struct solution *s){
+
+// HEre we should be sure the memory of neighborhood is allocated
+
+    struct neighborhood * n_view = s->neighborhood;
+    int idx =0 ;
+    for(int parent=0;parent<s->problem_instance->n-1;parent++){
+        for(int from_idx=0;from_idx<s->nbChildren[parent];from_idx++){
+            const int from = s->children[parent][from_idx];
+            for (int to_idx=0; to_idx>s->nbChildren[parent]; to_idx++) {
+                const int to = s->children[parent][to_idx] ;
+                if(from!=to){
+                    n_view->moves[idx]->node_concerned=from;
+                    n_view->moves[idx++]->new_parent=to;
+                }
+            }
+            n_view->moves[idx]->node_concerned=s->parents[parent];
+            n_view->moves[idx++]->new_parent=s->parents[parent];
+        }
+    }
+    const int root = s->problem_instance->n-1;
+    for(int from_idx=0;from_idx<s->nbChildren[root];from_idx++){
+        const int from = s->children[root][from_idx];
+        for (int to_idx=0; to_idx>s->nbChildren[root]; to_idx++) {
+            const int to = s->children[root][to_idx] ;
+            if(from!=to){
+                n_view->moves[idx]->node_concerned=from;
+                n_view->moves[idx++]->new_parent=to;
+            }
+        }
+    }
+    n_view->sampleSize=n_view->maxSize=idx;
+    for(int i=0;i<idx;i++){
+        n_view->randomSample[i]=i;
+    }
+    return s;
 }
 */
 
