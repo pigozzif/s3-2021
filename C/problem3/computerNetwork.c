@@ -34,9 +34,9 @@ struct move{
 
 struct neighborhood{
     int *randomSample;
-    struct move *moves; // [from0,to0,from1,to1 ....]
-    int *maxSize;
-    int *sampleSize;
+    int *moves; // [from0,to0,from1,to1 ....]
+    int maxSize;
+    int sampleSize;
 };
 
 struct solution{
@@ -381,7 +381,7 @@ struct solution *applyMove(struct solution *s, const struct move *v) {
 
 
 // TO TEST 
-/*
+
 
 struct move* randomMoveWOR(struct move *v, struct solution *s){
     struct neighborhood * n_view = s->neighborhood;
@@ -390,16 +390,14 @@ struct move* randomMoveWOR(struct move *v, struct solution *s){
     }
     const int rand_res = rand()%n_view->sampleSize;
     const int idx = n_view->randomSample[rand_res];
-    v->new_parent = n_view->moves[idx]->new_parent;
-    v->node_concerned = n_view->moves[idx]->node_concerned;
-    n_view->randomSample[rand_res] == n_view->randomSample[--sampleSize];
+    v->source_concerned = n_view->moves[idx*2];
+    v->new_parent = n_view->moves[idx*2+1];
+    n_view->randomSample[rand_res] = n_view->randomSample[--n_view->sampleSize];
     return v;
 }
 
 struct solution *resetRandomMoveWOR(struct solution *s){
-
 // HEre we should be sure the memory of neighborhood is allocated
-
     struct neighborhood * n_view = s->neighborhood;
     int idx =0 ;
     for(int parent=0;parent<s->problem_instance->n-1;parent++){
@@ -408,12 +406,12 @@ struct solution *resetRandomMoveWOR(struct solution *s){
             for (int to_idx=0; to_idx>s->nbChildren[parent]; to_idx++) {
                 const int to = s->children[parent][to_idx] ;
                 if(from!=to){
-                    n_view->moves[idx]->node_concerned=from;
-                    n_view->moves[idx++]->new_parent=to;
+                    n_view->moves[idx++]=from;
+                    n_view->moves[idx++]=to;
                 }
             }
-            n_view->moves[idx]->node_concerned=s->parents[parent];
-            n_view->moves[idx++]->new_parent=s->parents[parent];
+            n_view->moves[idx++]=from;
+            n_view->moves[idx++]=s->parents[parent];
         }
     }
     const int root = s->problem_instance->n-1;
@@ -422,18 +420,17 @@ struct solution *resetRandomMoveWOR(struct solution *s){
         for (int to_idx=0; to_idx>s->nbChildren[root]; to_idx++) {
             const int to = s->children[root][to_idx] ;
             if(from!=to){
-                n_view->moves[idx]->node_concerned=from;
-                n_view->moves[idx++]->new_parent=to;
+                n_view->moves[idx++]=from;
+                n_view->moves[idx++]=to;
             }
         }
     }
-    n_view->sampleSize=n_view->maxSize=idx;
-    for(int i=0;i<idx;i++){
+    n_view->sampleSize=n_view->maxSize=idx/2;
+    for(int i=0;i<n_view->sampleSize;i++){
         n_view->randomSample[i]=i;
     }
     return s;
 }
-*/
 
 int getNeighbourhoodSize(struct solution *s) {
     int ans = 0;
@@ -573,18 +570,6 @@ double *getObjectiveIncrement(double *obji, struct move *v, struct solution *s){
     double *increment = getObjectiveVector(obji, copy);
     v->new_score = *increment;
     return increment;
-}
-
-
-
-/* randomMoveWOR() implements uniform random sampling of the neighbourhood of
- * a given solution, without replacement.
- * The first input argument must be a pointer to a move previously allocated
- * with allocMove(), which is modified in place. The function returns this
- * pointer if a new move is generated or NULL if there are no moves left.
- */
-struct move *randomMoveWOR(struct move *v, struct solution *s){
-	return NULL;
 }
 
 // JUST FOR DEBUGGING
