@@ -71,6 +71,14 @@ double euclidean_distance(double x1, double x2, double y1, double y2) {
      return sqrt(x_diff * x_diff + y_diff * y_diff);
 }
 
+
+/**
+* returns a random integer between a and b.
+*/
+unsigned int randomInt(unsigned int b){
+	return rand()%(b+1);
+}
+
 // TODO: distance matrix can be optimised
 struct problem *newProblem(char *filename, double tc, double cc) {
     FILE* fp;
@@ -273,7 +281,11 @@ void printMove(struct move* v)
         return;
     n = v->problem_instance->n;
     printf("Move - %d buildings:\n",n);
+<<<<<<< HEAD
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
+=======
+    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
+>>>>>>> 4521fb28fe3f03dbc39d69ba5403eacc32330353
 }
 
 struct solution *copySolution(struct solution *dest, const struct solution *src) {
@@ -492,12 +504,7 @@ void addNeighbor(struct move *v, struct solution *s){
 }
 
 
-/**
-* returns a random integer between a and b.
-*/
-unsigned int randomInt(unsigned int a, unsigned int b){
-	return 0;
-}
+
 
 
 /**
@@ -512,29 +519,35 @@ unsigned int randomInt(unsigned int a, unsigned int b){
 	
 	unsigned solution_length = s->problem_instance->n;
 
-	edge_to_delete = randomInt(1, solution_length);
+	edge_to_delete = randomInt(solution_length-2);
 	unsigned parent = s->parents[edge_to_delete];
 
 	// get list of childerns for the parent
-	unsigned int nb_childerns = s->nbChilderns[parent];
+	unsigned int parent_nb_childerns = s->nbChildren[parent];
 
 	// 0..to nb_childerns will represent the indexes of childerns
 	// of the parent, and nb_childerns + 1 will represent the index of the parent of the parent.
-	unsigned int index_new_parent = randInt(0, nb_childerns + 1);
+	unsigned int index_new_parent = randomInt(parent_nb_childerns - 1);
 
 
-	if (index_new_parent == nb_childerns + 1){
+	while(index_new_parent == edge_to_delete){
+			 index_new_parent = randomInt(parent_nb_childerns - 1);
+
+	}
+
+	if (index_new_parent == parent_nb_childerns - 1){
 		// the parent of the parent.
 		edge_to_add = s->parents[parent]; 
 	
 	}else{
 		// pick one of the childerns randomly at uniform.
-		edge_to_add = s->childerns[parent][index_new_parent];
+
+		edge_to_add = s->children[parent][index_new_parent];
 
 	}
 
 	// update the move
-	v-> node_concerned = edge_to_delete;
+	v-> source_concerned = edge_to_delete;
 	v-> new_parent = edge_to_add;
 	// v->new_score = getObjectiveIncrement(obji, v, s);
 
