@@ -22,6 +22,8 @@ struct problem{
     double cable_cost;
     double **distances;  // distance matrix among buildings
     struct coordinate *coordinates;
+    int **children;
+    int *nbChildren;
 };
 
 struct solution{
@@ -117,6 +119,14 @@ struct problem *newProblem(char *filename, double tc, double cc) {
          for (int j = 0; j < n_buildings; ++j) {
               new_problem->distances[i][j] = euclidean_distance(new_problem->coordinates[i].x, new_problem->coordinates[i].y, new_problem->coordinates[j].x, new_problem->coordinates[j].y);
          }
+    }
+    new_problem->nbChildren = (int*) malloc(n_buildings * sizeof(int));
+    for (int i = 0; i < n_buildings; ++i) {
+        new_problem->nbChildren[i] = 0;
+    }
+    new_problem->children = (int**) malloc(n_buildings * sizeof(int*));
+    for (int i = 0; i < n_buildings; ++i) {
+        new_problem->children[i] = (int*) malloc(n_buildings * sizeof(int));
     }
 
     // free resources and return
@@ -346,7 +356,7 @@ int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
     printProblem(p);
     struct solution *s = allocSolution(p);
-    s = randomSolution(s);
+    //s = randomSolution(s);
     printSolution(s);    
     struct move* m = allocMove(p);
     printMove(m);
