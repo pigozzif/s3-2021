@@ -439,7 +439,8 @@ unsigned int randomInt(unsigned int a, unsigned int b){
 }
 
 
-/* randomMove() implements uniform random sampling of the neighbourhood of a
+/**
+ * randomMove() implements uniform random sampling of the neighbourhood of a
  * given solution, with replacement.
  * The first input argument must be a pointer to a move previously allocated
  * with allocMove(), which is modified in place.
@@ -448,18 +449,33 @@ struct move *randomMove(struct move *v, const struct solution *s){
 	// edges to delete and to add.
 	unsigned int edge_to_delete, edge_to_add = 0;
 	
-	unsigned solution_length = solution->problem_instance->n;
+	unsigned solution_length = s->problem_instance->n;
 
 	edge_to_delete = randomInt(1, solution_length);
-	unsigned parent = solution->parents[edge_to_delete];
+	unsigned parent = s->parents[edge_to_delete];
 
-	x
+	// get list of childerns for the parent
+	unsigned int nb_childerns = s->nbChilderns[parent];
+
+	// 0..to nb_childerns will represent the indexes of childerns
+	// of the parent, and nb_childerns + 1 will represent the index of the parent of the parent.
+	unsigned int index_new_parent = randInt(0, nb_childerns + 1);
 
 
+	if (index_new_parent == nb_childerns + 1){
+		// the parent of the parent.
+		edge_to_add = s->parents[parent]; 
+	
+	}else{
+		// pick one of the childerns randomly at uniform.
+		edge_to_add = s->childerns[parent][index_new_parent];
 
+	}
 
-
-
+	// update the move
+	v-> node_concerned = edge_to_delete;
+	v-> new_parent = edge_to_add;
+	// v->new_score = getObjectiveIncrement(obji, v, s);
 
 	return v;
 }
