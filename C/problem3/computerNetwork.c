@@ -158,6 +158,17 @@ void freeProblem(struct problem *p) {
     free(p);
 }
 
+struct neighborhood *allocNeighborhood(struct solution* s){
+    struct neighborhood * neigh = (struct neighborhood *) malloc(sizeof(struct neighborhood));
+    if (neigh == NULL) {
+        return neigh;
+    }
+    const int n = s->problem_instance->n;
+    neigh->randomSample = malloc(n*n*sizeof(int));
+    neigh->moves = malloc(n*n*sizeof(int));
+    return neigh;
+}
+
 struct solution *allocSolution(struct problem *p) {
     struct solution *sol = (struct solution *) malloc(sizeof(struct solution));
     if (sol == NULL) {
@@ -192,7 +203,16 @@ struct solution *allocSolution(struct problem *p) {
             sol->children[i][j] = -1;
         }
     }
+    sol->neighborhood = allocNeighborhood(sol);
     return sol;
+}
+
+
+
+void freeNeighborhood(struct neighborhood * n){
+    free(n->randomSample);
+    free(n->moves);
+    free(n);
 }
 
 void freeSolution(struct solution *s) {
@@ -204,6 +224,9 @@ void freeSolution(struct solution *s) {
     }
     free(s->children);
     free(s->nbChildren);
+    if (s->neighborhood != NULL) {
+        freeNeighborhood(s->neighborhood);
+    }
     free(s);
 }
 
@@ -248,6 +271,15 @@ void printProblem(struct problem *p)
     }
 }
 
+void printNeighborhood(struct neighborhood* n) 
+{
+    if(n == NULL)
+        return;
+    for (int idx=0; idx<n->sampleSize; idx++) {
+        printf("source node: %d, new parent: %d\n", n->moves[idx*2], n->moves[idx*2+1]);
+    }
+}
+
 void printSolution(struct solution *s) 
 { 
     int i, n;
@@ -260,7 +292,10 @@ void printSolution(struct solution *s)
         printf("B%d\t%i\t%f\t%f\n",i,s->parents[i],s->lengths_to_parent[i],s->paths_length_to_center[i]);
     }
     printf("Score: %f\n",s->score);
+    printf("Neighborhood :\n");
+    printNeighborhood(s->neighborhood);
 }
+
 
 void printMove(struct move* v) 
 {
@@ -272,6 +307,8 @@ void printMove(struct move* v)
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
 }
+
+struct neighborhood *copyNeighborhood(struct neighborhood);
 
 struct solution *copySolution(struct solution *dest, const struct solution *src) {
     if (dest == NULL || src == NULL) {
@@ -288,47 +325,15 @@ struct solution *copySolution(struct solution *dest, const struct solution *src)
     }
     memcpy(dest->nbChildren, src->nbChildren, n * sizeof(int));
     dest->score = src->score;
+    memcpy(dest->neighborhood->randomSample, src->neighborhood->randomSample, n*n*sizeof(int));
+    memcpy(dest->neighborhood->moves, src->neighborhood->moves, n*n*sizeof(int));
+    dest->neighborhood->maxSize = src->neighborhood->maxSize;
+    dest->neighborhood->sampleSize = src->neighborhood->sampleSize;
     return dest;
 }
 
 // TO TEST
 
-struct solution * randomSolution(struct solution *s){
-    const int N = s->problem_instance->n; 
-    const int n = N-2;
-    int * c = malloc(n*sizeof(int));
-    int * d = calloc(N, sizeof(int));
-    for(int i=0;i<N-2;i++){
-        const int v = rand()%N;
-        c[i] = v;
-        d[v]++;
-    }
-    int i = 0;
-    while(d[i]!=0){
-        i++;
-    }
-    int leaf = i;
-    for (int j=0;j<n; j++) {
-        const int v = c[j];
-        s->parents[leaf] = v;
-        s->children[v][s->nbChildren[v]++] = leaf;
-        if(--d[v] == 0 && v<i){
-            leaf = v;
-        }
-        else {
-            i++;
-            while(d[i]!=0){
-                i++;
-            }
-            leaf = i;
-        }
-    }
-    s->parents[leaf] = N-1;
-    s->children[N-1][s->nbChildren[N-1]++] = leaf;
-    free(d);
-    free(c);
-    return s;
-}
 
 void recursiveObjectiveVector(double * trenches, double * cables, int node, struct solution * s){
     for(int i=0;i<s->nbChildren[node];i++){
@@ -397,13 +402,12 @@ struct move* randomMoveWOR(struct move *v, struct solution *s){
 }
 
 struct solution *resetRandomMoveWOR(struct solution *s){
-// HEre we should be sure the memory of neighborhood is allocated
     struct neighborhood * n_view = s->neighborhood;
     int idx =0 ;
     for(int parent=0;parent<s->problem_instance->n-1;parent++){
         for(int from_idx=0;from_idx<s->nbChildren[parent];from_idx++){
             const int from = s->children[parent][from_idx];
-            for (int to_idx=0; to_idx>s->nbChildren[parent]; to_idx++) {
+            for (int to_idx=0; to_idx<s->nbChildren[parent]; to_idx++) {
                 const int to = s->children[parent][to_idx] ;
                 if(from!=to){
                     n_view->moves[idx++]=from;
@@ -425,10 +429,48 @@ struct solution *resetRandomMoveWOR(struct solution *s){
             }
         }
     }
-    n_view->sampleSize=n_view->maxSize=idx/2;
+    n_view->sampleSize = n_view->maxSize=idx/2;
     for(int i=0;i<n_view->sampleSize;i++){
         n_view->randomSample[i]=i;
     }
+    return s;
+}
+
+struct solution * randomSolution(struct solution *s){
+    const int N = s->problem_instance->n; 
+    const int n = N-2;
+    int * c = malloc(n*sizeof(int));
+    int * d = calloc(N, sizeof(int));
+    for(int i=0;i<N-2;i++){
+        const int v = rand()%N;
+        c[i] = v;
+        d[v]++;
+    }
+    int i = 0;
+    while(d[i]!=0){
+        i++;
+    }
+    int leaf = i;
+    for (int j=0;j<n; j++) {
+        const int v = c[j];
+        s->parents[leaf] = v;
+        s->children[v][s->nbChildren[v]++] = leaf;
+        if(--d[v] == 0 && v<i){
+            leaf = v;
+        }
+        else {
+            i++;
+            while(d[i]!=0){
+                i++;
+            }
+            leaf = i;
+        }
+    }
+    s->parents[leaf] = N-1;
+    s->children[N-1][s->nbChildren[N-1]++] = leaf;
+    free(d);
+    free(c);
+    s = resetRandomMoveWOR(s);
     return s;
 }
 
@@ -451,14 +493,6 @@ void allocateNeighborhood(struct solution *s){
 
 }
 
-
-/**
-*
-* Free memory allocated for the neighborhood n.
-*/
-void freeNeighborhood(struct neighborhood * n){
-
-}
 
 
 /**
@@ -589,20 +623,20 @@ int main(void) {
     printSolution(s2);
     //printf("score %lf\n",obj);
     struct move* m = allocMove(p);
-    m->source_concerned = 0;
-    m->target_concerned = 2;
-    m->new_parent = 6;
-    obj = *getObjectiveIncrement(&obj, m, s2);
-    printf("%lf\n", obj);
-    s = applyMove(s2, m);
+    //m->source_concerned = 0;
+    //m->target_concerned = 2;
+    //m->new_parent = 6;
+    //obj = *getObjectiveIncrement(&obj, m, s2);
+    //printf("%lf\n", obj);
+    //s = applyMove(s2, m);
     printSolution(s2);
     //struct move* m2 = allocMove(p);
     //m2 = copyMove(m2, m);
     //printMove(m);
     //printMove(m2);
     freeSolution(s);
-    //freeSolution(s2);
-    freeMove(m);
+    freeSolution(s2);
+    //freeMove(m);
     //freeMove(m2);
     freeProblem(p);
     return 0;
