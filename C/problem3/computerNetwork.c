@@ -187,7 +187,41 @@ void freeMove(struct move *v) {
 /**
   * Reporting
   */
-void printProblem(struct problem *p) {
+void printProblem(struct problem *p) 
+{
+    int i, j;
+    if(p == NULL)
+        return;
+    printf("Buildings: %d\n", p->n);
+    for(i=0; i<p->n; i++)
+        printf("B%d: (%.2f,%.2f); ",i, p->coordinates[i].x, p->coordinates[i].y); 
+    printf("\nDistances (written into problem struct):\n\t");
+    for(i=0; i<p->n; i++)
+        printf("B%d\t",i);
+    printf("\n");
+    for(j=0; j<p->n; j++)
+    {
+        printf("B%d\t",j);
+        for(i=0; i<p->n; i++)
+            printf("%.2f\t",p->distances[j][i]);
+        printf("\n");
+    }
+    /* calculated from coordinates */
+    printf("Distances (calculated):\n\t");
+    for(i=0; i<p->n; i++)
+        printf("B%d\t",i);
+    printf("\n");
+    for(j=0; j<p->n; j++)
+    {
+        printf("B%d\t",j);
+        for(i=0; i<p->n; i++)
+            printf("%.2f\t",euclidean_distance(
+                p->coordinates[j].x, p->coordinates[i].x,
+                p->coordinates[j].y, p->coordinates[i].y
+                )
+                );
+        printf("\n");
+    }
 }
 
 void printSolution(struct solution *s) { 
@@ -214,7 +248,7 @@ struct solution * copySolution(struct solution *dest, const struct solution *src
     /* or maybe
     memcpy(dest->paths_length_to_center, src->paths_length_to_center, n*sizeof(double));
     memcpy(dest->lengths_to_parent, src->lengths_to_parent, n*sizeof(double));
-    memcpy(dest->parents, src->parents, n*sizeof(double));
+    memcpy(dest->parents, src->parents, n*sizeof(int));
     */
    return dest;
 }
