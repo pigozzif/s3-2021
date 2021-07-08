@@ -7,17 +7,21 @@
   * This file implements the functions defined in problem for the 
   * computer network problem.
   */
-const int PROBLEM_SIZE = 5;
+
 
 /**
   * Basic data structures
   */
+struct coordinate {
+    double x, y;
+};
+
 struct problem{
     int n;  // number of buildings
     double trench_cost;
     double cable_cost;
     double **distances;  // distance matrix among buildings
-    double coordinates[PROBLEM_SIZE][2];
+    struct coordinate *coordinates;
 };
 
 struct solution{
@@ -78,15 +82,19 @@ struct problem *newProblem(char *filename, double tc, double cc) {
     int row = 0;
     int i = 0;
     char buffer[2];
+    new_problem->coordinates = (struct coordinate*) malloc(n_buildings * sizeof(struct coordinate));
+    if (new_problem->coordinates == NULL) {
+        return NULL;
+    }
     while ((ch = fgetc(new_fp)) != EOF) {
         if (ch == '\n') {
             ++row;
-            new_problem->coordinates[row][1] = atof(buffer);
+            new_problem->coordinates[row].y = atof(buffer);
             i = 0;
             continue;
         }
         else if (ch == ',') {
-            new_problem->coordinates[row][0] = atof(buffer);
+            new_problem->coordinates[row].x = atof(buffer);
             i = 0;
             continue;
         }
@@ -107,7 +115,7 @@ struct problem *newProblem(char *filename, double tc, double cc) {
               return NULL;
          }
          for (int j = 0; j < n_buildings; ++j) {
-              new_problem->distances[i][j] = euclidean_distance(new_problem->coordinates[i][0], new_problem->coordinates[i][1], new_problem->coordinates[j][0], new_problem->coordinates[j][1]);
+              new_problem->distances[i][j] = euclidean_distance(new_problem->coordinates[i].x, new_problem->coordinates[i].y, new_problem->coordinates[j].x, new_problem->coordinates[j].y);
          }
     }
 
@@ -121,6 +129,11 @@ int getNumObjectives(const struct problem *p) {
 }
 
 void freeProblem(struct problem *p) {
+    for (int i = 0; i < p->n; ++i) {
+        free(p->distances[i]);
+    }
+    free(p->distances);
+    free(p->coordinates);
     free(p);
 }
 
@@ -149,11 +162,14 @@ struct solution *allocSolution(struct problem *p) {
 }
 
 void freeSolution(struct solution *s) {
+    free(s->paths_length_to_center);
+    free(s->lengths_to_parent);
+    free(s->parents);
     free(s);
 }
 
 struct move *allocMove(struct problem *p) {
-    struct move *m = (struct move *)malloc(sizeof(struct move));
+    struct move *m = (struct move *) malloc(sizeof(struct move));
     if (m == NULL) {
         return m;
     }
@@ -171,35 +187,159 @@ void freeMove(struct move *v) {
 /**
   * Reporting
   */
-void printProblem(struct problem *p) {
-    printf("===PROBLEM INSTANCE===\n");
-    printf("Buildings (x, y):\n");
-    for (int i = 0; i < p->n; ++i) {
-        printf("(%f, %f)\n", **(p->coordinates + i), *(*(p->coordinates + i) + 1));
-    }
+void printProblem(struct problem *p) 
+{
+    int i, j;
+    if(p == NULL)
+        return;
+    printf("Buildings: %d\n", p->n);
+    for(i=0; i<p->n; i++)
+        printf("B%d: (%.2f,%.2f); ",i, p->coordinates[i].x, p->coordinates[i].y); 
+    printf("\nDistances (written into problem struct):\n\t");
+    for(i=0; i<p->n; i++)
+        printf("B%d\t",i);
     printf("\n");
-    printf("# BUILDINGS: %d\n", p->n);
-    printf("============\n");
+    for(j=0; j<p->n; j++)
+    {
+        printf("B%d\t",j);
+        for(i=0; i<p->n; i++)
+            printf("%.2f\t",p->distances[j][i]);
+        printf("\n");
+    }
+    /* calculated from coordinates */
+    printf("Distances (calculated):\n\t");
+    for(i=0; i<p->n; i++)
+        printf("B%d\t",i);
+    printf("\n");
+    for(j=0; j<p->n; j++)
+    {
+        printf("B%d\t",j);
+        for(i=0; i<p->n; i++)
+            printf("%.2f\t",euclidean_distance(
+                p->coordinates[j].x, p->coordinates[i].x,
+                p->coordinates[j].y, p->coordinates[i].y
+                )
+                );
+        printf("\n");
+    }
 }
 
-void printSolution(struct solution *s) {
-    printf("===SOLUTION===\n");
-    printf("Trenches (source, target):\n");
-    for (int i = 0; i < s->problem_instance->n; ++i) {
-        printf("(%d, %d)\n", i, *(s->parents + i));
+void printSolution(struct solution *s) 
+{ 
+    int i, n;
+    if(s == NULL || s->problem_instance == NULL)
+        return;
+    n = s->problem_instance->n;
+    printf("Solution - %d buildings:\n",n);
+    printf("Build\tParent\tDistance\tPath to center\n");
+    for(i=0; i<n; i++)
+    {
+        printf("B%d\t%i\t%f\t%f\n",i,s->parents[i],s->lengths_to_parent[i],s->paths_length_to_center[i]);
     }
-    printf("\n");
-    printf("SCORE: %f\n", s->score);
-    printf("============\n");    
+    printf("Score: %f\n",s->score);
 }
 
-void printMove(struct move* v) {
-    printf("===MOVE===\n");
-    printf("NODE CONCERNED: %d\n", v->node_concerned);
-    printf("NEW EDGE: (%d, %d)\n", v->node_concerned, v->new_parent);
-    printf("NEW SCORE: %f\n", v->new_score);
-    printf("============\n");
+void printMove(struct move* v) 
+{
+    int n;
+    if(v == NULL || v->problem_instance == NULL)
+        return;
+    n = v->problem_instance->n;
+    printf("Move - %d buildings:\n",n);
+    printf("Node: %d, new parent: %d, score: %lf\n", v->node_concerned, v->new_parent, v->new_score);
 }
+
+/* coppying src solution (struct) elements to dest solution (struct) elements */
+struct solution * copySolution(struct solution *dest, const struct solution *src)
+{
+    int i, n;
+    if(dest == NULL || src == NULL)
+        return NULL;
+    dest->problem_instance = src->problem_instance;
+    dest->score = src->score;
+    n = src->problem_instance->n;
+    for(i=0; i<n; i++)
+    {
+        dest->paths_length_to_center[i] = src->paths_length_to_center[i];
+        dest->lengths_to_parent[i] = src->lengths_to_parent[i];
+        dest->parents[i] = src->parents[i];
+    }
+    /* or maybe
+    memcpy(dest->paths_length_to_center, src->paths_length_to_center, n*sizeof(double));
+    memcpy(dest->lengths_to_parent, src->lengths_to_parent, n*sizeof(double));
+    memcpy(dest->parents, src->parents, n*sizeof(int));
+    */
+   return dest;
+}
+
+
+
+// TO TEST
+/*
+struct solution * randomSolution(struct solution *s){
+    const int N = s->problem_instance->n; 
+    const int n = N-2;
+    int * c = malloc(n*sizeof(int));
+    int * d = calloc(N, sizeof(int));
+    for(int i=0;i<N-2;i++){
+        const int v = rand()%N;
+        c[i] = v;
+        d[v]++;
+    }
+    int i = 0;
+    while(d[i]!=0){
+        i++;
+    }
+    int leaf = i;
+    for (int j=0;j<n; j++) {
+        const int v = c[j];
+        s->parents[leaf] = v;
+        s->children[v][s->nbChildren[v]++] = leaf;
+        if(--d[v] == 0 && v<i){
+            leaf = v;
+        }
+        else {
+            i++;
+            while(d[i]!=0){
+                i++;
+            }
+            leaf = i;
+        }
+    }
+    s->parents[leaf] = N-1;
+    s->children[N-1][s->nbChildren[N-1]++] = leaf;
+    free(d);
+    free(c);
+    return s;
+}
+*/
+
+// TO TEST
+/*
+void recursiveObjectiveVector(double * trenches, double * cables, int node, struct solution * s){
+    for(int i=0;i<s->nbChildren[node];i++){
+        const int child = s->children[node][i];
+        *trenches += s->lengths_to_parent[child] = s->problem_instance->distances[child][node];
+        *cables += s->paths_length_to_center[child] = s->paths_length_to_center[node] + s->lengths_to_parent[child];
+        if(s->nbChildren[child] > 0){
+            recursiveObjectiveVector(trenches , cables, child, s);
+        }
+    }
+}
+*/
+
+// TO TEST
+/*
+double * getObjectiveVector(double *objv, struct solution * s){
+    const int root = s->problem_instance->n-1;
+    double trenches =0.0;
+    double cables = 0.0;
+    recursiveObjectiveVector(&trenches,&cables,root,s);
+    *objv = trenches*s->problem_instance->trench_cost + cables*s->problem_instance->cable_cost;
+    return objv;
+}
+*/
+
 
 
 
@@ -262,12 +402,13 @@ struct move *randomMoveWOR(struct move *v, struct solution *s){
 int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
     printProblem(p);
-    freeProblem(p);
     struct solution *s = allocSolution(p);
+    s = randomSolution(s);
     printSolution(s);    
-    freeSolution(s);
     struct move* m = allocMove(p);
     printMove(m);
+    freeSolution(s);
     freeMove(m);
+    freeProblem(p);
     return 0;
 }
