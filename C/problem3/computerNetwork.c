@@ -368,22 +368,22 @@ double * getObjectiveVector(double *objv, struct solution * s){
     return objv;
 }
 */
-/*struct solution *applyMove(struct solution *s, const struct move *v) {
-    s->parents[m->source_concerned] = m->new_parent;
-    
-    s->score = m->new_score;
-    int prev = -1;
-    int start_copying;
+struct solution *applyMove(struct solution *s, const struct move *v) {
+    s->parents[v->source_concerned] = v->new_parent;
+    s->score = v->new_score;
+    int start_copying = 0;
     for (int i = 0; i < s->problem_instance->n; ++i) {
-         if (s->children[m->target_concerned][i] == m->source_concerned) {
-             
+         if (s->children[v->target_concerned][i] == v->source_concerned) {
+             start_copying = 1;
          }
-         s->children
-         prev = s->children[m->target_concerned][i];
+         if (start_copying == 1 && i != s->problem_instance->n) {
+             s->children[v->target_concerned][i] = s->children[v->target_concerned][i];    
+         }
     }
-    s->nbChildren[m->target_concerned] -= 1;
-    s->nbChildren[m->new_parent] += 1; 
-}*/
+    s->nbChildren[v->target_concerned] -= 1;
+    s->nbChildren[v->new_parent] += 1;
+    return s; 
+}
 
 
 // TO TEST 
@@ -610,6 +610,11 @@ int main(void) {
     printf("%d", getNeighbourhoodSize(s));
     //printSolution(s2);    
     struct move* m = allocMove(p);
+    m->source_concerned = 0;
+    m->target_concerned = 2;
+    m->new_parent = 6;
+    s = applyMove(s, m);
+    printSolution(s);
     //struct move* m2 = allocMove(p);
     //m2 = copyMove(m2, m);
     //printMove(m);
