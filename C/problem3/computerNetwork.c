@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include "../include/s3problem.h"
 
 /**
   * This file implements the functions defined in problem for the 
@@ -12,7 +13,7 @@
 /**
   * Basic data structures
   */
-struct coordinate {
+/*struct coordinate {
     double x, y;
 };
 
@@ -48,7 +49,7 @@ struct solution{
 	double score; // the objective function value for the solution.
     int **children;
     int *nbChildren;
-};
+};*/
 
 /**
   * Problem instantiation and inspection
@@ -363,7 +364,8 @@ double * getObjectiveVector(double *objv, struct solution * s){
     double trenches =0.0;
     double cables = 0.0;
     recursiveObjectiveVector(&trenches,&cables,root,s);
-    s->score = *objv = trenches*s->problem_instance->trench_cost + cables*s->problem_instance->cable_cost;
+    *objv = trenches*s->problem_instance->trench_cost + cables*s->problem_instance->cable_cost;
+    s->score = *objv;
     return objv;
 }
 
@@ -640,7 +642,7 @@ double *getObjectiveIncrement(double *obji, struct move *v, struct solution *s){
 }
 
 // JUST FOR DEBUGGING
-int main(void) {
+/*int main(void) {
     struct problem *p = newProblem("buildings.txt", 1.0, 1.0);
     printProblem(p);
     struct solution *s = allocSolution(p);
@@ -649,9 +651,11 @@ int main(void) {
     struct solution *s2 = allocSolution(p);
     s2 = copySolution(s2, s);
 //    printf("%d", getNeighbourhoodSize(s));
-    double obj = *getObjectiveVector(&obj,s2);
+    double cost;
+    double* costPtr = &cost;
+    getObjectiveVector(costPtr, s2);
     printSolution(s2);
-    //printf("score %lf\n",obj);
+    printf("score %lf\n", *costPtr);
     struct move* m = allocMove(p);
     //m->source_concerned = 0;
     //m->target_concerned = 2;
@@ -664,10 +668,10 @@ int main(void) {
     //m2 = copyMove(m2, m);
     //printMove(m);
     //printMove(m2);
-    freeSolution(s);
-    freeSolution(s2);
+    //freeSolution(s);
+    //freeSolution(s2);
     //freeMove(m);
     //freeMove(m2);
     freeProblem(p);
     return 0;
-}
+}*/
