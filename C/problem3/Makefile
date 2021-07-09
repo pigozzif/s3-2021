@@ -47,7 +47,7 @@ problem3-ils: problem3-ils.o problem3.o
 %.o: %.c
 	$(CC) -c -o $@ $(CFLAGS) $(OPT) $<
 
-problem3.o: problem3.c $(PDEPS)
+problem3.o: computerNetwork.c $(PDEPS)
 problem3-shd.o: problem3-shd.c $(PDEPS) $(IDIR)/shd.h $(SDEPS)
 problem3-sga.o: problem3-sga.c $(PDEPS) $(IDIR)/sga.h $(SDEPS)
 problem3-ils.o: problem3-ils.c $(PDEPS) $(IDIR)/ils.h $(SDEPS)
