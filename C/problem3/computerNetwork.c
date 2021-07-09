@@ -41,7 +41,7 @@ struct neighborhood{
 
 struct solution{
 	struct problem *problem_instance;
-        struct neighborhood * neighborhood;
+	struct neighborhood * neighborhood;
 	double *paths_length_to_center; // total path to the center from node n
 	double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
 	int * parents; // the array of indexes of the parent for each node.
@@ -158,7 +158,7 @@ void freeProblem(struct problem *p) {
     free(p);
 }
 
-struct neighborhood *allocNeighborhood(struct solution* s){
+struct neighborhood *allocNeighborhood(const struct solution* s){
     struct neighborhood * neigh = (struct neighborhood *) malloc(sizeof(struct neighborhood));
     if (neigh == NULL) {
         return neigh;
@@ -215,6 +215,7 @@ void freeNeighborhood(struct neighborhood * n){
 }
 
 void freeSolution(struct solution *s) {
+    return;
     free(s->paths_length_to_center);
     free(s->lengths_to_parent);
     free(s->parents);
@@ -307,11 +308,11 @@ void printMove(struct move* v)
 
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
 
-    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
+    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
 
 
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
-    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
+    printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->target_concerned, v->new_parent, v->new_score);
 }
 
 struct neighborhood *copyNeighborhood(struct neighborhood* dest, const struct neighborhood *src, int n) {
@@ -630,11 +631,12 @@ double *getObjectiveIncrement(double *obji, struct move *v, struct solution *s){
     copy = copySolution(copy, s);
     copy = applyMove(copy, v);
     double increment = 0.0;
-    for (int i = 0; i < s->problem_instance->n; ++i) {
-        increment += s->problem_instance->trench_cost * s->lengths_to_parent[i] + s->problem_instance->cable_cost * s->paths_length_to_center[i];
+    for (int i = 0; i < copy->problem_instance->n; ++i) {
+        increment += copy->problem_instance->trench_cost * copy->lengths_to_parent[i] + copy->problem_instance->cable_cost * copy->paths_length_to_center[i];
     }
     v->new_score = increment;
-    return &increment;
+    *obji = increment;
+    return obji;
 }
 
 // JUST FOR DEBUGGING
