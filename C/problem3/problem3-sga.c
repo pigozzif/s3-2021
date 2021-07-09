@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     max_iter = atoi(argv[3]);
 
     /* Problem and solver instantiation */
-    p = newProblem(argv[1]);
+    p = newProblem(argv[1], 1.0, 1.0);
     if (p != NULL) {
         ss = newSolver(p, pop_size);
 

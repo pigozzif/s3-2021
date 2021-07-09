@@ -30,7 +30,10 @@ int main(int argc, char **argv) {
     struct problem *p;
     struct solverState *ss;
     int max_iter, i;
-    double cost, mincost;
+    double mincost;
+    double cost;
+    double* costPtr = &cost;
+    double* mincostPtr = &mincost;
 
     if (argc < 3) {
         fprintf(stderr, "Usage: %s <file name> <max iter>\n", argv[0]);
@@ -45,19 +48,23 @@ int main(int argc, char **argv) {
     max_iter = atoi(argv[2]);
 
     /* Problem and solver instantiation */
-    p = newProblem(argv[1]);
+    p = newProblem(argv[1], 1.0, 1.0);
     if (p != NULL) {
         ss = newSolver(p);
 
         /* Run */
-        getObjectiveVector(&mincost, getSolverSolution(ss));
-        printf("iter = 0, obj = %.0f\n", mincost);
+        mincostPtr = getObjectiveVector(mincostPtr, getSolverSolution(ss));
+        printf("iter = 0, obj = %.0f\n", getSolverSolution(ss)->score);
+        printSolution(getSolverSolution(ss));
         for (i = 0; i < max_iter; i++) {
+            printf("===ITER===\n");
+            printf("===BEST SOLUTION===\n");
+            printSolution(getSolverSolution(ss));
             nextSolverState(ss);
-            getObjectiveVector(&cost, getSolverSolution(ss));
-            if (cost < mincost) {
+            costPtr = getObjectiveVector(costPtr, getSolverSolution(ss));
+            if (*costPtr < *mincostPtr) {
                 mincost = cost;
-                printf("iter = %d, obj = %.0f\n", i+1, mincost);
+                printf("iter = %d, obj = %.0f\n", i+1, *mincostPtr);
             }
         }
 
