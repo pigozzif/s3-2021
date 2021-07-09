@@ -16,7 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "problem.h"
+#include "../solver/problem.h"
 
 /* This header file contains all solver independent definitions */
 

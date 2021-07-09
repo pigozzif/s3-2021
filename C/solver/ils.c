@@ -17,6 +17,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <gsl/gsl_rng.h>
 #include "ils.h"
 

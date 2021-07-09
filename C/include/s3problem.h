@@ -1,4 +1,4 @@
-#include "problem.h"
+#include "../solver/problem.h"
 
 /**
   * data structures
