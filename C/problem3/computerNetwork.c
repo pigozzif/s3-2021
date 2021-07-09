@@ -395,6 +395,8 @@ struct solution *applyMove(struct solution *s, const struct move *v) {
     s->nbChildren[v->target_concerned] -= 1;
     s->nbChildren[v->new_parent] += 1;
     recursivelyUpdateNode(s, v->source_concerned);
+    s = resetRandomMoveWOR(s);
+    printSolution(s);
     return s; 
 }
 
