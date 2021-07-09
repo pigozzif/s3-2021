@@ -4,9 +4,43 @@
   * data structures
   */
 
-struct problem;
-struct solution;
-struct move;
+struct coordinate {
+    double x, y;
+};
+
+struct problem{
+    int n;  // number of buildings
+    double trench_cost;
+    double cable_cost;
+    double **distances;  // distance matrix among buildings
+    struct coordinate *coordinates;
+};
+
+struct move{
+    struct problem * problem_instance;
+    int source_concerned;
+    int target_concerned;
+    int new_parent;
+    double new_score;
+};
+
+struct neighborhood{
+    int *randomSample;
+    int *moves; // [from0,to0,from1,to1 ....]
+    int maxSize;
+    int sampleSize;
+};
+
+struct solution{
+    struct problem *problem_instance;
+    struct neighborhood * neighborhood;
+    double *paths_length_to_center; // total path to the center from node n
+    double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
+    int * parents; // the array of indexes of the parent for each node.
+    double score; // the objective function value for the solution.
+    int **children;
+    int *nbChildren;
+};
 
 
 
@@ -14,7 +48,7 @@ struct move;
   * problem instantiation and inspection
   */
 
-struct problem *newProblem(char* filename);
+struct problem *newProblem(char* filename, double tc, double cc);
 int getNumObjectives(const struct problem *p);
 
 
