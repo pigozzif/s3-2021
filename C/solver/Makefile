@@ -18,7 +18,7 @@
 IDIR = ../include
 CC = gcc
 OPT = -O3 -g
-CFLAGS = -I$(IDIR) -I/Users/federicopigozzi/gsl/include
+CFLAGS = -I$(IDIR)
 PDEPS = problem.h
 SDEPS = $(IDIR)/solver.h
 LIBS = -lgsl -lgslcblas -lm
