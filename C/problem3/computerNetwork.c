@@ -216,7 +216,7 @@ void freeNeighborhood(struct neighborhood * n){
 
 void freeSolution(struct solution *s) {
     return;
-    free(s->paths_length_to_center);
+    /*free(s->paths_length_to_center);
     free(s->lengths_to_parent);
     free(s->parents);
     for (int i = 0; i < s->problem_instance->n; ++i) {
@@ -227,7 +227,7 @@ void freeSolution(struct solution *s) {
     if (s->neighborhood != NULL) {
         freeNeighborhood(s->neighborhood);
     }
-    free(s);
+    free(s);*/
 }
 
 struct move *allocMove(struct problem *p) {
