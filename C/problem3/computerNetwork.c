@@ -380,7 +380,49 @@ void recursivelyUpdateNode(struct solution *s, int node) {
     }
 }
 
+
+void printChildren(const struct solution*s){
+    printf("CHILDREN\n");
+    for (int i=0;i<s->problem_instance->n; i++) {
+        printf("%i :",i);
+        for (int j=0; j<s->nbChildren[i]; j++) {
+            printf(" %i, ",s->children[i][j]);
+        }
+        printf("\n");
+    }
+}
+
 struct solution *applyMove(struct solution *s, const struct move *v) {
+    printf("MOVE IS %i,%i\n", v->source_concerned,v->new_parent);
+    printChildren(s);
+
+    // deleting old connection
+    const int node = v->source_concerned;
+    const int old_parent = s->parents[v->source_concerned];
+
+    for (int i=0 ; i<s->nbChildren[old_parent]; i++) {
+        if (s->children[old_parent][i] == node) {
+            s->children[old_parent][i] = s->children[old_parent][--s->nbChildren[old_parent]]; 
+            break;
+        }
+    }
+
+    // adding new connection
+
+    s->parents[v->source_concerned] = v->new_parent;
+    s->score = v->new_score;
+    s->children[v->new_parent][s->nbChildren[v->new_parent]++] = node;
+    recursivelyUpdateNode(s, v->source_concerned);
+    printChildren(s);
+    s = resetRandomMoveWOR(s);
+    printSolution(s);
+    return s; 
+}
+
+
+/*struct solution *applyMove(struct solution *s, const struct move *v) {
+    printf("MOVE IS %i,%i\n", v->source_concerned,v->new_parent);
+    printChildren(s);
     s->parents[v->source_concerned] = v->new_parent;
     s->score = v->new_score;
     int start_copying = 0;
@@ -395,10 +437,11 @@ struct solution *applyMove(struct solution *s, const struct move *v) {
     s->nbChildren[v->target_concerned] -= 1;
     s->nbChildren[v->new_parent] += 1;
     recursivelyUpdateNode(s, v->source_concerned);
+    printChildren(s);
     s = resetRandomMoveWOR(s);
     //printSolution(s);
     return s; 
-}
+}*/
 
 
 // TO TEST 
@@ -426,10 +469,12 @@ struct solution *resetRandomMoveWOR(struct solution *s){
             for (int to_idx=0; to_idx<s->nbChildren[parent]; to_idx++) {
                 const int to = s->children[parent][to_idx] ;
                 if(from!=to){
+                    printf("%i,%i\n",from,to);
                     n_view->moves[idx++]=from;
                     n_view->moves[idx++]=to;
                 }
             }
+            printf("%i,%i\n",from,s->parents[parent]);
             n_view->moves[idx++]=from;
             n_view->moves[idx++]=s->parents[parent];
         }
@@ -440,6 +485,7 @@ struct solution *resetRandomMoveWOR(struct solution *s){
         for (int to_idx=0; to_idx>s->nbChildren[root]; to_idx++) {
             const int to = s->children[root][to_idx] ;
             if(from!=to){
+                printf("%i,%i\n",from,to);
                 n_view->moves[idx++]=from;
                 n_view->moves[idx++]=to;
             }
@@ -597,6 +643,8 @@ struct move *randomMove(struct move *v, const struct solution *s){
 	v->target_concerned = parent;
 	v->new_parent = edge_to_add;
 	// v->new_score = getObjectiveIncrement(obji, v, s);
+
+    printf(" RANDOM MOVES %i ,%i\n",v->source_concerned,v->new_parent);
 
 	return v;
 }
