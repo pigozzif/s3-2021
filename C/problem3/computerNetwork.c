@@ -572,18 +572,19 @@ struct move *randomMove(struct move *v, const struct solution *s){
 	// new parent
 	parent = s->parents[edge_to_delete];
 	// degree of this parent
-	unsigned int parent_degree = s->nbChildren[parent];
+	int parent_degree = s->nbChildren[parent];
 
-	int index_edge_to_add = randomInt(parent_degree + 1);
+	int upper_bound = (s->parents[parent] == -1) ? parent_degree : parent_degree + 1;
+	int index_edge_to_add = randomInt(upper_bound);
 	// 0 is the for representing the index of the 
 	// parent. That is the move does not change the 
 	// solution.
 	while (s->children[parent][index_edge_to_add] == edge_to_delete){
-		index_edge_to_add = randomInt(parent_degree + 1);
+		index_edge_to_add = randomInt(upper_bound);
 	}
 	
 	// new parent is the parent of the parent.
-	if (index_edge_to_add == parent_degree + 1){
+	if (index_edge_to_add == parent_degree + 1 && upper_bound == parent_degree + 1) {
 		edge_to_add = s->parents[parent];
 	}else{
 		edge_to_add = s->children[parent][index_edge_to_add];
