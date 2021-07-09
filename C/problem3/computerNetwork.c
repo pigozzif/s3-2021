@@ -41,7 +41,7 @@ struct neighborhood{
 
 struct solution{
 	struct problem *problem_instance;
-    struct neighborhood * neighborhood;
+        struct neighborhood * neighborhood;
 	double *paths_length_to_center; // total path to the center from node n
 	double *lengths_to_parent;// the distance from each node in the tree to the parent. The parent is the immediate node going up to the root of the tree.
 	int * parents; // the array of indexes of the parent for each node.
@@ -208,7 +208,6 @@ struct solution *allocSolution(struct problem *p) {
 }
 
 
-
 void freeNeighborhood(struct neighborhood * n){
     free(n->randomSample);
     free(n->moves);
@@ -308,7 +307,13 @@ void printMove(struct move* v)
     printf("source node: %d, target node: %d, new parent: %d, score: %lf\n", v->source_concerned, v->new_parent, v->new_score);
 }
 
-struct neighborhood *copyNeighborhood(struct neighborhood);
+struct neighborhood *copyNeighborhood(struct neighborhood* dest, const struct neighborhood *src, int n) {
+    memcpy(dest->randomSample, src->randomSample, n*n*sizeof(int));
+    memcpy(dest->moves, src->moves, n*n*sizeof(int));
+    dest->maxSize = src->maxSize;
+    dest->sampleSize = src->sampleSize;
+    return dest;
+}
 
 struct solution *copySolution(struct solution *dest, const struct solution *src) {
     if (dest == NULL || src == NULL) {
@@ -325,10 +330,9 @@ struct solution *copySolution(struct solution *dest, const struct solution *src)
     }
     memcpy(dest->nbChildren, src->nbChildren, n * sizeof(int));
     dest->score = src->score;
-    memcpy(dest->neighborhood->randomSample, src->neighborhood->randomSample, n*n*sizeof(int));
-    memcpy(dest->neighborhood->moves, src->neighborhood->moves, n*n*sizeof(int));
-    dest->neighborhood->maxSize = src->neighborhood->maxSize;
-    dest->neighborhood->sampleSize = src->neighborhood->sampleSize;
+    struct neighborhood *ne = allocNeighborhood(src);
+    ne = copyNeighborhood(ne, src->neighborhood, n);
+    dest->neighborhood = ne;
     return dest;
 }
 
