@@ -64,7 +64,7 @@ double euclidean_distance(double x1, double x2, double y1, double y2) {
 /**
 * returns a random integer between a and b.
 */
-unsigned int randomInt(unsigned int b){
+int randomInt(unsigned int b){
 	return rand()%(b+1);
 }
 
@@ -541,15 +541,15 @@ void addNeighbor(struct move *v, struct solution *s){
  */
 struct move *randomMove(struct move *v, const struct solution *s){
 
-	unsigned int solution_length = s->problem_instance->n;
+	int solution_length = s->problem_instance->n;
 	// edges to delete and to add.
-	unsigned int edge_to_delete, edge_to_add;
+	int edge_to_delete, edge_to_add;
 	// the degree of each node in the tree
-	unsigned int node_degree[solution_length];
+	int node_degree[solution_length];
 
 	// for each node in the solution computes its degree.
-	unsigned int sum_degrees;
-	unsigned int parent;
+	int sum_degrees = 0;
+	int parent;
 
 	for (unsigned int i = 0; i < solution_length - 1 ; ++i){
 		parent = s->parents[i];
@@ -559,8 +559,8 @@ struct move *randomMove(struct move *v, const struct solution *s){
 
 	// proportionate selection of the edege to be deleted.
 	edge_to_delete = randomInt(sum_degrees-1);
-	unsigned int node_index = 0;
-	unsigned int i_sum_degree = node_degree[node_index];
+	int node_index = 0;
+	int i_sum_degree = node_degree[node_index];
 
 	while(edge_to_delete > i_sum_degree ){
 		node_index++;
@@ -574,24 +574,25 @@ struct move *randomMove(struct move *v, const struct solution *s){
 	// degree of this parent
 	unsigned int parent_degree = s->nbChildren[parent];
 
-	unsigned int index_edge_to_add = randomInt(parent_degree - 1);
+	int index_edge_to_add = randomInt(parent_degree + 1);
 	// 0 is the for representing the index of the 
 	// parent. That is the move does not change the 
 	// solution.
-	while(index_edge_to_add==0){
-		edge_to_add = randomInt(parent_degree - 1);
+	while (s->children[parent][index_edge_to_add] == edge_to_delete){
+		index_edge_to_add = randomInt(parent_degree + 1);
 	}
 	
 	// new parent is the parent of the parent.
-	if (index_edge_to_add == parent_degree - 1){
+	if (index_edge_to_add == parent_degree + 1){
 		edge_to_add = s->parents[parent];
 	}else{
 		edge_to_add = s->children[parent][index_edge_to_add];
 	}
 
 	// update the move
-	v-> source_concerned = edge_to_delete;
-	v-> new_parent = edge_to_add;
+	v->source_concerned = edge_to_delete;
+	v->target_concerned = parent;
+	v->new_parent = edge_to_add;
 	// v->new_score = getObjectiveIncrement(obji, v, s);
 
 	return v;

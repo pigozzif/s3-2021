@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
         for (i = 0; i < max_iter; i++) {
             printf("===ITER===\n");
             printf("===BEST SOLUTION SCORE===\n");
-            printf("%lf", getSolverSolution(ss)->score);
+            printf("%lf\n", getSolverSolution(ss)->score);
             nextSolverState(ss);
             costPtr = getObjectiveVector(costPtr, getSolverSolution(ss));
             if (*costPtr < *mincostPtr) {
